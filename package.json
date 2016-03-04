@@ -1,0 +1,23 @@
+{
+  "name": "express-dom-pdf",
+  "version": "0.1.0",
+  "description": "PDF plugin for express-dom",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kapouer/express-dom-pdf.git"
+  },
+  "author": "Jérémy Lal <kapouer@melix.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kapouer/express-dom-pdf/issues"
+  },
+  "dependencies": {
+    "debug": "^2.2.0",
+    "ghostscript-js": "0.0.1",
+    "tempfile": "^1.1.1"
+  }
+}
