@@ -2,6 +2,9 @@
 
 PDF plugin for express-dom
 
+Uses webkitgtk addon to render html pages to pdf, and optionally uses
+ghostscript's 'gs' executable to compress or convert the pdf.
+
 Install
 -------
 
@@ -11,23 +14,29 @@ npm install express-dom-pdf --save
 Usage
 -----
 
-Once express-dom is setup to render web pages, and webkitgtk is native,
-just render the pages through pdf helper and plugin. It automatically
-pass to next route if not format=png query parameter is found.
+This plugin for express-dom can run aside other rendering engines, one just has
+to install the middleware before the one that is actually rendering html.
 
 ```
 var pdf = require('express-dom-pdf');
 var app = require('express')();
 
+// only triggered by format=pdf in url query, otherwise goes to next route
 app.get('*', dom(pdf.helper).load({
 	plugins: [pdf.plugin]
 }));
 
+// if other html pages are rendered by express-dom - but could be anything else
 app.get('*', dom().load());
 ```
 
+The caught parameters are removed from subrequest's query.
 
-wget http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100
+The `quality` parameter triggers ghostscript compression.
 
-The added parameters are removed from query before making the sub-request.
+Ghostscript does not need to be installed unless this parameter is used.
+
+Example query:
+
+http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100&quality=prepress
 
