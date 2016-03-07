@@ -47,7 +47,7 @@ function pdfPlugin(page, settings, request, response) {
 function pdfHelper(settings, request, response) {
 	var qu = request.query;
 	if (qu.format != "pdf") return Promise.reject('route');
-	settings.load.plugins = [pdfPlugin];
+	settings.load = {plugins: [pdfPlugin]};
 	delete qu.format;
 	var opts = {
 		page: {},
