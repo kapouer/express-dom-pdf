@@ -21,10 +21,17 @@ to install the middleware before the one that is actually rendering html.
 var pdf = require('express-dom-pdf');
 var app = require('express')();
 
-// only triggered by format=pdf in url query, otherwise goes to next route
-app.get('*', dom(pdf.helper).load({
-	plugins: [pdf.plugin]
-}));
+// app.get('*', dom(pdf())); // simply append format=pdf to url query to trigger
+
+// or configure defaults and mappings
+app.get('*', dom(pdf({
+	// a default value for quality forces gs conversion
+	quality: 'screen',
+	orientation: 'portrait'
+}, {
+	// the application happens to use that name, replace it by another one
+	orientation: 'pivot'
+})));
 
 // if other html pages are rendered by express-dom - but could be anything else
 app.get('*', dom().load());
@@ -41,8 +48,8 @@ Example query:
 http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100&quality=prepress
 
 
-Stylesheets
------------
+Styling
+-------
 
 <link rel="stylesheet" href="style.css" media="print" />
 

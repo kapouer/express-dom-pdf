@@ -3,7 +3,11 @@ var tempfile = require('tempfile');
 var fs = require('fs');
 var child_process = require('child_process');
 
-exports.plugin = function(page, settings, request, response) {
+module.exports = function(opts) {
+	return pdfHelper.bind(opts);
+};
+
+function pdfPlugin(page, settings, request, response) {
 	settings['auto-load-images'] = true;
 	settings.style = null;
 	settings.stall = 2000;
@@ -37,22 +41,23 @@ exports.plugin = function(page, settings, request, response) {
 			cb();
 		});
 	});
-};
+}
 
 
-exports.helper = function(settings, request, response) {
+function pdfHelper(settings, request, response) {
 	var qu = request.query;
 	if (qu.format != "pdf") return Promise.reject('route');
+	settings.load.plugins = [pdfPlugin];
 	delete qu.format;
 	var opts = {
 		page: {},
 		gs: {}
 	};
 	['orientation', 'paper', 'margins'].forEach(function(key) {
-		importKey(qu, opts.page, key);
+		importKey(Object.assign({}, qu, this), opts.page, key);
 	});
 	['quality'].forEach(function(key) {
-		importKey(qu, opts.gs, key);
+		importKey(Object.assign({}, qu, this), opts.gs, key);
 	});
 	if (Object.keys(opts.gs).length == 0) delete opts.gs;
 	settings.pdf = opts;
