@@ -3,8 +3,27 @@ var tempfile = require('tempfile');
 var fs = require('fs');
 var child_process = require('child_process');
 
-module.exports = function(opts) {
-	return pdfHelper.bind(opts);
+module.exports = function(defaults, mappings) {
+	return function(settings, request, response) {
+		var qu = request.query;
+		if (qu.format != "pdf") return Promise.reject('route');
+		settings.load = {plugins: [pdfPlugin]};
+		delete qu.format;
+		var opts = {
+			page: Object.assign({}, defaults),
+			gs: Object.assign({}, defaults)
+		};
+		['orientation', 'paper', 'margins'].forEach(function(key) {
+			importKey(qu, opts.page, key);
+		});
+		['quality'].forEach(function(key) {
+			importKey(qu, opts.gs, key);
+		});
+		if (Object.keys(opts.gs).length == 0) delete opts.gs;
+		settings.pdf = opts;
+		// sets the view to be fetched from current request url, effectively doing a subrequest
+		settings.view = settings.location;
+	};
 };
 
 function pdfPlugin(page, settings, request, response) {
@@ -42,28 +61,6 @@ function pdfPlugin(page, settings, request, response) {
 		});
 	});
 }
-
-
-function pdfHelper(settings, request, response) {
-	var qu = request.query;
-	if (qu.format != "pdf") return Promise.reject('route');
-	settings.load = {plugins: [pdfPlugin]};
-	delete qu.format;
-	var opts = {
-		page: {},
-		gs: {}
-	};
-	['orientation', 'paper', 'margins'].forEach(function(key) {
-		importKey(Object.assign({}, qu, this), opts.page, key);
-	});
-	['quality'].forEach(function(key) {
-		importKey(Object.assign({}, qu, this), opts.gs, key);
-	});
-	if (Object.keys(opts.gs).length == 0) delete opts.gs;
-	settings.pdf = opts;
-	// sets the view to be fetched from current request url, effectively doing a subrequest
-	settings.view = settings.location;
-};
 
 function importKey(from, to, key) {
 	if (from[key] !== undefined) {
