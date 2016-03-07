@@ -40,3 +40,29 @@ Example query:
 
 http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100&quality=prepress
 
+
+Stylesheets
+-----------
+
+<link rel="stylesheet" href="style.css" media="print" />
+
+or in a stylesheet, using a media query
+
+```
+@media print {
+  article {
+    page-break-inside: avoid;
+  }
+}
+```
+
+Read also [page break properties](http://caniuse.com/#feat=css-page-break),
+in particular note that:
+
+* all browsers supports the page-break-* alias from the CSS 2.1 specification,
+but not the break-* properties from the latest spec.
+
+* all browsers but opera mini do not support avoid for page-break-before & page-break-after
+(only page-break-inside)
+
+* almost all browsers treats the left and right values like always
