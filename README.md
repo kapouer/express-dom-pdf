@@ -51,7 +51,9 @@ http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100&qualit
 Styling
 -------
 
+```
 <link rel="stylesheet" href="style.css" media="print" />
+```
 
 or in a stylesheet, using a media query
 
