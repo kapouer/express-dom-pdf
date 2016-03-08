@@ -66,12 +66,8 @@ or in a stylesheet, using a media query
 ```
 
 Read also [page break properties](http://caniuse.com/#feat=css-page-break),
-in particular note that:
+in particular note that all browsers support these styles quite well:
+* page-break-before: auto | always
+* page-break-after: auto | always
+* page-break-inside: auto | avoid
 
-* all browsers supports the page-break-* alias from the CSS 2.1 specification,
-but not the break-* properties from the latest spec.
-
-* all browsers but opera mini do not support avoid for page-break-before & page-break-after
-(only page-break-inside)
-
-* almost all browsers treats the left and right values like always
