@@ -4,7 +4,7 @@ var request = require('request');
 
 var host = "http://localhost";
 var dom = require('express-dom');
-var pdf = require('..');
+var pdf = require('..')();
 
 dom.settings.stall = 5000;
 dom.settings.allow = 'all';
@@ -18,9 +18,7 @@ describe("Simple setup", function suite() {
 	before(function(done) {
 		var app = express();
 		app.set('views', __dirname + '/public');
-		app.get(/\.html$/, dom(pdf.helper).load({
-			plugins: [pdf.plugin]
-		}));
+		app.get(/\.html$/, dom(pdf));
 		app.get(/\.(json|js|css|png|jpg|html)$/, express.static(app.get('views')));
 
 
