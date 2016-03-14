@@ -4,10 +4,10 @@ var fs = require('fs');
 var child_process = require('child_process');
 
 module.exports = function(defaults, mappings) {
-	return function(settings, request, response) {
+	return function(mw, settings, request, response) {
 		var qu = request.query;
 		if (qu.format != "pdf") return Promise.reject('route');
-		settings.load = {plugins: [pdfPlugin]};
+		mw.load({plugins: [pdfPlugin]});
 		delete qu.format;
 		var opts = {
 			page: Object.assign({}, defaults),
@@ -36,28 +36,25 @@ function pdfPlugin(page, settings, request, response) {
 	settings.runTimeout = 1000;
 
 
-	page.when('load', function(cb) {
+	page.when('load', function() {
 		var fpath = tempfile('.pdf');
-		debug("getting pdf output of", settings.location.href);
-		page.pdf(fpath, settings.pdf.page, function(err) {
-			if (err) {
-				response.status(500);
-				settings.output = err;
+		debug("getting pdf output of", settings.location);
+		return page.pdf(fpath, settings.pdf.page).then(function() {
+			debug("pdf ready");
+			response.set('Content-Type', 'application/pdf');
+			if (settings.pdf.gs) {
+				settings.output = throughGS(fpath, settings.pdf.gs);
 			} else {
-				debug("pdf ready");
-				response.set('Content-Type', 'application/pdf');
-				if (settings.pdf.gs) {
-					settings.output = throughGS(fpath, settings.pdf.gs);
-				} else {
-					settings.output = fs.createReadStream(fpath);
-				}
-				settings.output.on('close', function() {
-					fs.unlink(fpath, function(err) {
-						if (err) console.error("Error cleaning temp file", fpath, err);
-					});
-				});
+				settings.output = fs.createReadStream(fpath);
 			}
-			cb();
+			settings.output.on('close', function() {
+				fs.unlink(fpath, function(err) {
+					if (err) console.error("Error cleaning temp file", fpath, err);
+				});
+			});
+		}).catch(function(err) {
+			response.status(500);
+			settings.output = err;
 		});
 	});
 }
