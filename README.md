@@ -27,7 +27,8 @@ var app = require('express')();
 app.get('*', dom(pdf({
 	// a default value for quality forces gs conversion
 	quality: 'screen',
-	orientation: 'portrait'
+	orientation: 'portrait',
+	iccdir: require('path').join(__dirname, 'icc') // a directory containing allowed icc profiles
 }, {
 	// the application happens to use that name, replace it by another one
 	orientation: 'pivot'
@@ -39,13 +40,16 @@ app.get('*', dom().load());
 
 The caught parameters are removed from subrequest's query.
 
-The `quality` parameter triggers ghostscript compression.
+The `quality` or `icc` parameters triggers ghostscript compression.
 
 Ghostscript does not need to be installed unless this parameter is used.
 
 Example query:
 
-http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100&quality=prepress
+http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100&quality=prepress&icc=sugarcoated300.icc
+
+The iccdir option can not be set through query, only the icc option can.
+`"${iccdir}/${icc}"` must be an existing file name.
 
 
 Styling

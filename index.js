@@ -2,6 +2,7 @@ var debug = require('debug')('express-dom-pdf');
 var tempfile = require('tempfile');
 var fs = require('fs');
 var child_process = require('child_process');
+var Path = require('path');
 
 module.exports = function(defaults, mappings) {
 	return function(mw, settings, request, response) {
@@ -16,7 +17,7 @@ module.exports = function(defaults, mappings) {
 		['orientation', 'paper', 'margins'].forEach(function(key) {
 			importKey(qu, opts.page, key);
 		});
-		['quality'].forEach(function(key) {
+		['quality', 'icc'].forEach(function(key) {
 			importKey(qu, opts.gs, key);
 		});
 		if (Object.keys(opts.gs).length == 0) delete opts.gs;
@@ -80,7 +81,7 @@ function throughGS(fpath, opts) {
 	if ([
 		"screen", "ebook", "printer", "prepress", "default"
 	].indexOf(quality) < 0) {
-		quality = "default";
+		quality = opts.icc ? "printer" : "default";
 	}
 	var args = [
 		"-q",
@@ -90,10 +91,32 @@ function throughGS(fpath, opts) {
 		"-dMaxBitmap=10000000",
 		"-sDEVICE=pdfwrite",
 		"-dCompatibilityLevel=1.4",
-		"-dPDFSETTINGS=/" + quality,
+		"-dNumRenderingThreads=4",
+		"-dPDFSETTINGS=/" + quality
+	];
+	if (opts.icc) {
+		var iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
+		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');
+		args.push(
+			'-dPDFX=true',
+			//'-dPDFUseOldCMS=true',
+			//'-sColorConversionStrategy=/CMYK',
+			'-dAutoFilterColorImages=false', // or else most images go wrong
+			'-dAutoFilterGrayImages=false',
+			'-dColorImageFilter=/FlateEncode',
+			'-dGrayImageFilter=/FlateEncode',
+			'-sDefaultRGBProfile=' + defaultIccPath,
+			'-sOutputICCProfile=' + iccpath
+		);
+		if (quality != "printer") {
+			console.warn("express-dom-pdf with ICC profile should use printer instead of", quality);
+		}
+	}
+	args.push(
 		"-sOutputFile=-",
 		fpath
-	];
+	);
+
 	debug("gs", args.join(" "));
 
 	var gs = child_process.spawn('gs', args);
