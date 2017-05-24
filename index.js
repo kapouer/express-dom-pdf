@@ -120,5 +120,10 @@ function throughGS(fpath, opts) {
 	debug("gs", args.join(" "));
 
 	var gs = child_process.spawn('gs', args);
+
+	gs.stderr.on('data', function(data) {
+		console.error(data.toString());
+	});
+
 	return gs.stdout;
 }
