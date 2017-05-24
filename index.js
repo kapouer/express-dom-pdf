@@ -39,7 +39,7 @@ function pdfPlugin(page, settings, request, response) {
 
 	page.when('load', function() {
 		var fpath = tempfile('.pdf');
-		debug("getting pdf output of", settings.location);
+		debug("getting pdf output of", page.uri);
 		return page.pdf(fpath, settings.pdf.page).then(function() {
 			debug("pdf ready");
 			response.set('Content-Type', 'application/pdf');
