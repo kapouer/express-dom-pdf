@@ -5,6 +5,9 @@ PDF plugin for express-dom
 Uses webkitgtk addon to render html pages to pdf, and optionally uses
 ghostscript's 'gs' executable to compress or convert the pdf.
 
+New in version 0.4: pdf/x and ICC profiles support
+
+
 Install
 -------
 
