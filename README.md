@@ -75,3 +75,7 @@ in particular note that all browsers support these styles quite well:
 * page-break-after: auto | always
 * page-break-inside: auto | avoid
 
+Unsupported as of webkit2gtk <= 2.17:
+- css multicolumn layout is only supported when not printing, so even if it is
+  rendered nicely using webkitgtk, it won't be rendered in the pdf.
+
