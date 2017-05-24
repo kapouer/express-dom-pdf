@@ -90,8 +90,9 @@ function throughGS(fpath, opts) {
 		"-dNOPAUSE",
 		"-dSAFER",
 		"-dMaxBitmap=10000000",
-		"-sDEVICE=pdfwrite",
-		"-dCompatibilityLevel=1.4",
+		// "-dCompatibilityLevel=1.4",
+		// "-dFirstPage=" + opts.first,
+		// "-dLastPage=" + opts.last,
 		"-dNumRenderingThreads=4",
 		"-dPDFSETTINGS=/" + quality
 	];
@@ -100,12 +101,7 @@ function throughGS(fpath, opts) {
 		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');
 		args.push(
 			'-dPDFX=true',
-			//'-dPDFUseOldCMS=true',
-			//'-sColorConversionStrategy=/CMYK',
-			'-dAutoFilterColorImages=false', // or else most images go wrong
-			'-dAutoFilterGrayImages=false',
-			'-dColorImageFilter=/FlateEncode',
-			'-dGrayImageFilter=/FlateEncode',
+			'-sColorConversionStrategy=CMYK',
 			'-sDefaultRGBProfile=' + defaultIccPath,
 			'-sOutputICCProfile=' + iccpath
 		);
@@ -114,6 +110,7 @@ function throughGS(fpath, opts) {
 		}
 	}
 	args.push(
+		"-sDEVICE=pdfwrite",
 		"-sOutputFile=-",
 		fpath
 	);
