@@ -70,6 +70,7 @@ function importKey(from, to, key) {
 function throughGS(fpath, opts) {
 	// http://milan.kupcevic.net/ghostscript-ps-pdf/
 	// ALL OPTIONS http://ghostscript.com/doc/current/Ps2pdf.htm
+	// http://ghostscript.com/doc/current/VectorDevices.htm#PDFWRITE
 	// PDF/X-3 see also http://www.color.org/chardata/drsection1.xalter
 	// the images quality
 	// screen: 72 dpi
