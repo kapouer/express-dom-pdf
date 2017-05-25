@@ -5,7 +5,9 @@ PDF plugin for express-dom
 Uses webkitgtk addon to render html pages to pdf, and optionally uses
 ghostscript's 'gs' executable to compress or convert the pdf.
 
-New in version 0.4: pdf/x and ICC profiles support
+New in version 0.4:
+- pdf/x and ICC profiles support
+- filename query parameter support
 
 
 Install
@@ -31,7 +33,7 @@ app.get('*', dom(pdf({
 	// a default value for quality forces gs conversion
 	quality: 'screen',
 	orientation: 'portrait',
-	iccdir: require('path').join(__dirname, 'icc') // a directory containing allowed icc profiles
+	iccdir: require('path').join(__dirname, 'icc') // a directory containing icc profiles
 }, {
 	// the application happens to use that name, replace it by another one
 	orientation: 'pivot'
@@ -49,10 +51,13 @@ Ghostscript does not need to be installed unless this parameter is used.
 
 Example query:
 
-http://localhost:3000/mypage?format=pdf&orientation=landscape&margins=100&quality=prepress&icc=sugarcoated300.icc
+http://localhost:3000/mypage?format=pdf&filename=mypage.pdf&orientation=landscape&margins=20&icc=sugarcoated300.icc
 
 The iccdir option can not be set through query, only the icc option can.
-`"${iccdir}/${icc}"` must be an existing file name.
+- `${iccdir}/${icc}` must be an existing file name
+- `${iccdir}/sRGB.icc` must exists, because the default RGB profile is needed for conversion to CMYK.
+
+The `filename` parameter sends a `Content-Disposition: attachment, filename="xxx"` response header.
 
 
 Styling
