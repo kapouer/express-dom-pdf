@@ -69,5 +69,17 @@ describe("Simple setup", function suite() {
 		});
 	});
 
+	it("should get a pdf with that filename", function(done) {
+		request({
+			method: 'GET',
+			url: host + ':' + port + '/index.html?format=pdf&filename=test.pdf'
+		}, function(err, res, body) {
+			expect(res.statusCode).to.be(200);
+			expect(res.headers['content-disposition']).to.be('attachment; filename="test.pdf"');
+			expect(body.length).to.be.greaterThan(80000);
+			done();
+		});
+	});
+
 });
 
