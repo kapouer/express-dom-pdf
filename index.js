@@ -93,11 +93,10 @@ function throughGS(fpath, opts) {
 		"-dBATCH",
 		"-dNOPAUSE",
 		"-dSAFER",
-		"-dMaxBitmap=10000000",
 		// "-dCompatibilityLevel=1.4",
 		// "-dFirstPage=" + opts.first,
 		// "-dLastPage=" + opts.last,
-		"-dNumRenderingThreads=4",
+		"-dNumRenderingThreads=8",
 		"-dPDFSETTINGS=/" + quality
 	];
 	if (opts.icc) {
