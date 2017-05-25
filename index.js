@@ -21,6 +21,7 @@ module.exports = function(defaults, mappings) {
 			importKey(qu, opts.gs, key);
 		});
 		if (Object.keys(opts.gs).length == 0) delete opts.gs;
+		if (qu.filename) opts.filename = qu.filename;
 		settings.pdf = opts;
 		// sets the view to be fetched from current request url, effectively doing a subrequest
 		settings.view = settings.location;
@@ -43,6 +44,9 @@ function pdfPlugin(page, settings, request, response) {
 		return page.pdf(fpath, settings.pdf.page).then(function() {
 			debug("pdf ready");
 			response.set('Content-Type', 'application/pdf');
+			if (settings.pdf.filename) {
+				response.attachment(settings.pdf.filename);
+			}
 			if (settings.pdf.gs) {
 				settings.output = throughGS(fpath, settings.pdf.gs);
 			} else {
