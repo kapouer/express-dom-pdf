@@ -20,8 +20,11 @@ module.exports = function(defaults, mappings) {
 		['quality', 'icc'].forEach(function(key) {
 			importKey(qu, opts.gs, key);
 		});
+		['filename'].forEach(function(key) {
+			importKey(qu, opts, key);
+		});
 		if (Object.keys(opts.gs).length == 0) delete opts.gs;
-		if (qu.filename) opts.filename = qu.filename;
+
 		settings.pdf = opts;
 		// sets the view to be fetched from current request url, effectively doing a subrequest
 		settings.view = settings.location;
