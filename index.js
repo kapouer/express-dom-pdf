@@ -83,11 +83,8 @@ function throughGS(fpath, opts) {
 	// prepress: 300 dpi, color preserving
 	// default: almost identical to screen
 	var quality = opts.quality;
-	if ([
-		"screen", "ebook", "printer", "prepress", "default"
-	].indexOf(quality) < 0) {
-		quality = opts.icc ? "printer" : "default";
-	}
+	if (!quality) quality = "default";
+	if (opts.icc) quality = "printer";
 	var args = [
 		"-q",
 		"-dBATCH",
@@ -108,9 +105,6 @@ function throughGS(fpath, opts) {
 			'-sDefaultRGBProfile=' + defaultIccPath,
 			'-sOutputICCProfile=' + iccpath
 		);
-		if (quality != "printer") {
-			console.warn("express-dom-pdf with ICC profile should use printer instead of", quality);
-		}
 	}
 	args.push(
 		"-sDEVICE=pdfwrite",
