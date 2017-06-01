@@ -4,6 +4,8 @@ var fs = require('fs');
 var child_process = require('child_process');
 var Path = require('path');
 
+var pdfxDefPs = fs.readFileSync(Path.join(__dirname, 'PDFX_def.ps')).toString();
+
 module.exports = function(defaults, mappings) {
 	return function(mw, settings, request, response) {
 		var qu = request.query;
@@ -93,6 +95,7 @@ function throughGS(fpath, opts) {
 		"-dBATCH",
 		"-dNOPAUSE",
 		"-dSAFER",
+		// "-dNOOUTERSAVE",
 		// "-dCompatibilityLevel=1.4",
 		// "-dFirstPage=" + opts.first,
 		// "-dLastPage=" + opts.last,
@@ -101,10 +104,13 @@ function throughGS(fpath, opts) {
 	];
 	if (opts.icc) {
 		var iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
+		var pdfxDefPath = tempfile('.ps');
+		fs.writeFileSync(pdfxDefPath, pdfxDefPs.replace('ICCPROFILEPATH', iccpath.replace(/ /g, '\ ')));
+
 		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');
 		args.push(
 			'-dPDFX=true',
-			'-sColorConversionStrategy=CMYK',
+			'-dProcessColorModel=/DeviceCMYK',
 			'-sDefaultRGBProfile=' + defaultIccPath,
 			'-sOutputICCProfile=' + iccpath
 		);
@@ -112,6 +118,7 @@ function throughGS(fpath, opts) {
 	args.push(
 		"-sDEVICE=pdfwrite",
 		"-sOutputFile=-",
+		pdfxDefPath,
 		fpath
 	);
 
