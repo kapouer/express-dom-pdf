@@ -122,9 +122,9 @@ function throughGS(fpath, title, opts) {
 		var pdfxDefPath = tempfile('.ps');
 		var pdfxData = pdfxDefPs
 			.replace('!ICC!', iccpath.replace(/ /g, '\ '))
-			.replace('!OUPUTCONDITION!', opts.outputcondition || 'Commercial and specialty offset')
-			.replace('!OUPUTCONDITIONID!', opts.outputconditionid || 'unknown')
-			.replace('!TITLE!', title);
+			//.replace('!OUPUTCONDITION!', (opts.outputcondition || 'Commercial and specialty offset').replace(/ /g, '\ '))
+			.replace('!OUPUTCONDITIONID!', (opts.outputconditionid || 'unknown').replace(/ /g, '\ '))
+			.replace('!TITLE!', title.replace(/ /g, '\ '));
 		fs.writeFileSync(pdfxDefPath, pdfxData);
 
 		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');
