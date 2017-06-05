@@ -113,7 +113,9 @@ function throughGS(fpath, title, opts) {
 		// "-dFirstPage=" + opts.first,
 		// "-dLastPage=" + opts.last,
 		"-dNumRenderingThreads=8",
-		"-dPDFSETTINGS=/" + quality
+		"-dPDFSETTINGS=/" + quality,
+		"-sDEVICE=pdfwrite",
+		"-sOutputFile=-"
 	];
 	if (opts.icc) {
 		var iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
@@ -128,15 +130,12 @@ function throughGS(fpath, title, opts) {
 			'-dPDFX=true',
 			'-dProcessColorModel=/DeviceCMYK',
 			'-sDefaultRGBProfile=' + defaultIccPath,
-			'-sOutputICCProfile=' + iccpath
+			'-sOutputICCProfile=' + iccpath,
+			pdfxDefPath
 		);
 	}
-	args.push(
-		"-sDEVICE=pdfwrite",
-		"-sOutputFile=-",
-		pdfxDefPath,
-		fpath
-	);
+
+	args.push(fpath);
 
 	debug("gs", args.join(" "));
 
