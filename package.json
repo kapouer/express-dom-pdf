@@ -22,12 +22,11 @@
   },
   "devDependencies": {
     "expect.js": "^0.3.1",
-    "express": "^4.13.1",
-    "express-dom": "^4.0.0",
+    "express": "^4.15.3",
+    "express-dom": "^5.8.1",
     "mocha": "^2.2.5"
   },
   "peerDependencies": {
     "express-dom": "^5.0.0"
   }
 }
-
