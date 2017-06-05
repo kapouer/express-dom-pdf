@@ -122,7 +122,9 @@ function throughGS(fpath, title, opts) {
 		var pdfxDefPath = tempfile('.ps');
 		var pdfxData = pdfxDefPs
 			.replace('!ICC!', iccpath.replace(/ /g, '\ '))
-			.replace('!TITLE!', title.replace(/ /g, '\ '));
+			.replace('!OUPUTCONDITION!', opts.outputcondition || 'unknown')
+			.replace('!OUPUTCONDITIONID!', opts.outputconditionid || 'unknown')
+			.replace('!TITLE!', title);
 		fs.writeFileSync(pdfxDefPath, pdfxData);
 
 		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');

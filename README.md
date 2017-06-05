@@ -6,7 +6,8 @@ Uses webkitgtk addon to render html pages to pdf, and optionally uses
 ghostscript's 'gs' executable to compress or convert the pdf.
 
 New in version 1.0:
-- validable pdf/x-3 with custom output ICC profile
+- validable pdf/x-3 with custom output ICC profile, output condition, and
+  output condition identifier
 - filename is automatically built from document title or page uri
 - query parameters are stored in "pdf" object
 
@@ -54,9 +55,11 @@ The `quality` or `icc` parameters triggers ghostscript compression.
 Ghostscript does not need to be installed unless this parameter is used.
 
 Example queries:
+```
 http://localhost:3000/mypage?pdf
 http://localhost:3000/mypage?pdf[orientation]=landscape
-http://localhost:3000/mypage?pdf[margins]=20&pdf[icc]=sugarcoated300.icc
+http://localhost:3000/mypage?pdf[margins]=20&pdf[icc]=ISOcoated_v2_300.icc&pdf[outputcondition]=Commercial%20and%20specialty%20offset&pdf[outputconditionid]=FOGRA39L
+```
 
 The iccdir option can not be set through query, only the icc option can.
 - `${iccdir}/${icc}` must be an existing file name
