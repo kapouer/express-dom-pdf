@@ -122,7 +122,7 @@ function throughGS(fpath, title, opts) {
 		var pdfxDefPath = tempfile('.ps');
 		var pdfxData = pdfxDefPs
 			.replace('!ICC!', iccpath.replace(/ /g, '\ '))
-			.replace('!OUPUTCONDITION!', opts.outputcondition || 'unknown')
+			.replace('!OUPUTCONDITION!', opts.outputcondition || 'Commercial and specialty offset')
 			.replace('!OUPUTCONDITIONID!', opts.outputconditionid || 'unknown')
 			.replace('!TITLE!', title);
 		fs.writeFileSync(pdfxDefPath, pdfxData);
