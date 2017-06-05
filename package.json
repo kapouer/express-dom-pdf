@@ -1,6 +1,6 @@
 {
   "name": "express-dom-pdf",
-  "version": "0.4.3",
+  "version": "1.0.0",
   "description": "PDF plugin for express-dom",
   "main": "index.js",
   "scripts": {
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "debug": "^2.2.0",
+    "speakingurl": "^13.0.0",
     "tempfile": "^2.0.0"
   },
   "devDependencies": {
@@ -26,6 +27,7 @@
     "mocha": "^2.2.5"
   },
   "peerDependencies": {
-  	"express-dom": "^5.0.0"
+    "express-dom": "^5.0.0"
   }
 }
+

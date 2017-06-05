@@ -38,7 +38,7 @@ describe("Simple setup", function suite() {
 	it("should get a non-compressed pdf without gs", function(done) {
 		request({
 			method: 'GET',
-			url: host + ':' + port + '/index.html?format=pdf'
+			url: host + ':' + port + '/index.html?pdf'
 		}, function(err, res, body) {
 			expect(res.statusCode).to.be(200);
 			expect(body.length).to.be.greaterThan(80000);
@@ -49,7 +49,7 @@ describe("Simple setup", function suite() {
 	it("should get a smaller pdf with gs screen quality", function(done) {
 		request({
 			method: 'GET',
-			url: host + ':' + port + '/index.html?format=pdf&quality=screen'
+			url: host + ':' + port + '/index.html?pdf[quality]=screen'
 		}, function(err, res, body) {
 			expect(res.statusCode).to.be(200);
 			expect(body.length).to.be.lessThan(30000);
@@ -60,7 +60,7 @@ describe("Simple setup", function suite() {
 	it("should get a smaller pdf yet bigger than screen with gs prepress quality", function(done) {
 		request({
 			method: 'GET',
-			url: host + ':' + port + '/index.html?format=pdf&quality=prepress'
+			url: host + ':' + port + '/index.html?pdf[quality]=prepress'
 		}, function(err, res, body) {
 			expect(res.statusCode).to.be(200);
 			expect(body.length).to.be.greaterThan(30000);
@@ -69,13 +69,13 @@ describe("Simple setup", function suite() {
 		});
 	});
 
-	it("should get a pdf with that filename", function(done) {
+	it("should get a pdf with title as filename", function(done) {
 		request({
 			method: 'GET',
-			url: host + ':' + port + '/index.html?format=pdf&filename=test.pdf'
+			url: host + ':' + port + '/index.html?pdf'
 		}, function(err, res, body) {
 			expect(res.statusCode).to.be(200);
-			expect(res.headers['content-disposition']).to.be('attachment; filename="test.pdf"');
+			expect(res.headers['content-disposition']).to.be('attachment; filename="test-title.pdf"');
 			expect(body.length).to.be.greaterThan(80000);
 			done();
 		});

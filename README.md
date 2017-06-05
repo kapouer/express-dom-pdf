@@ -5,9 +5,16 @@ PDF plugin for express-dom
 Uses webkitgtk addon to render html pages to pdf, and optionally uses
 ghostscript's 'gs' executable to compress or convert the pdf.
 
-New in version 0.4:
-- pdf/x and ICC profiles support
-- filename query parameter support
+New in version 1.0:
+- validable pdf/x-3 with custom output ICC profile
+- filename is automatically built from document title or page uri
+- query parameters are stored in "pdf" object
+
+Breaking changes from 0.x versions:
+- filename parameter is ignored, pdf file is always attached
+- query parameters can no longer be renamed
+- query parameters must all belong to pdf object and "format" parameter no
+  longer exists. Use an empty "?pdf" query parameter to print without options.
 
 
 Install
@@ -34,9 +41,6 @@ app.get('*', dom(pdf({
 	quality: 'screen',
 	orientation: 'portrait',
 	iccdir: require('path').join(__dirname, 'icc') // a directory containing icc profiles
-}, {
-	// the application happens to use that name, replace it by another one
-	orientation: 'pivot'
 })));
 
 // if other html pages are rendered by express-dom - but could be anything else
@@ -49,19 +53,20 @@ The `quality` or `icc` parameters triggers ghostscript compression.
 
 Ghostscript does not need to be installed unless this parameter is used.
 
-Example query:
-
-http://localhost:3000/mypage?format=pdf&filename=mypage.pdf&orientation=landscape&margins=20&icc=sugarcoated300.icc
+Example queries:
+http://localhost:3000/mypage?pdf
+http://localhost:3000/mypage?pdf[orientation]=landscape
+http://localhost:3000/mypage?pdf[margins]=20&pdf[icc]=sugarcoated300.icc
 
 The iccdir option can not be set through query, only the icc option can.
 - `${iccdir}/${icc}` must be an existing file name
 - `${iccdir}/sRGB.icc` must exists, because the default RGB profile is needed for conversion to CMYK.
 
-The `filename` parameter sends a `Content-Disposition: attachment, filename="xxx"` response header.
-
 
 Styling
 -------
+
+See [the wiki](https://github.com/kapouer/express-dom-pdf/wiki) for known limitations.
 
 ```
 <link rel="stylesheet" href="style.css" media="print" />

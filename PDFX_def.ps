@@ -11,9 +11,10 @@ systemdict /ProcessColorModel known {
 
 % Define entries to the document Info dictionary :
 
-/ICCProfile ICCPROFILEPATH def
+/ICCProfile (!ICC!) def
 
 [ /GTS_PDFXVersion (PDF/X-3:2002) % Must be so (the standard requires).
+  /Title (!TITLE!)                % Customize.
   /Trapped /False                 % Must be so (Ghostscript doesn't provide other).
   /DOCINFO pdfmark
 
@@ -31,6 +32,7 @@ currentdict /ICCProfile known {
 [{OutputIntent_PDFX} <<
   /Type /OutputIntent              % Must be so (the standard requires).
   /S /GTS_PDFX                     % Must be so (the standard requires).
+  /OutputCondition (Print document created from web page)   % Customize
   /RegistryName (http://www.color.org)   % Must be so (the standard requires).
   currentdict /ICCProfile known {
     /DestOutputProfile {icc_PDFX}  % Must be so (see above).
