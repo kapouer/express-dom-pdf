@@ -31,6 +31,11 @@ module.exports = function(defaults, mappings) {
 		delete request.query.pdf;
 		Object.assign(opts, defaults);
 
+		if (mappings) Object.keys(mappings).forEach(function(key) {
+			if (opts[key] === undefined) return;
+			Object.assign(opts, mappings[key][opts[key]] || {});
+		});
+
 		mw.load({plugins: [pdfPlugin.bind(opts)]});
 		// sets the view to be fetched from current request url, effectively doing a subrequest
 		settings.view = settings.location;
@@ -94,6 +99,8 @@ function throughGS(fpath, title, opts) {
 	// ALL OPTIONS http://ghostscript.com/doc/current/Ps2pdf.htm
 	// http://ghostscript.com/doc/current/VectorDevices.htm#PDFWRITE
 	// PDF/X-3 see also http://www.color.org/chardata/drsection1.xalter
+	// and explanations about ICC, OutputConditionIdentifier is
+	// https://stackoverflow.com/questions/35705099/ghostscript-why-must-i-provide-a-pdfa-def-ps-for-pdf-a-conversion
 	// the images quality
 	// screen: 72 dpi
 	// ebook: 150 dpi
@@ -104,15 +111,16 @@ function throughGS(fpath, title, opts) {
 	if (!quality) quality = "default";
 	if (opts.icc) quality = "printer";
 	var args = [
-		"-q",
+		"-q", // do not log to stdout
+		"-sstdout=%stderr", // redirect postscript errors to stderr
 		"-dBATCH",
 		"-dNOPAUSE",
-		"-dSAFER",
+		// "-dSAFER", // or else absolute paths cannot be specified
 		// "-dNOOUTERSAVE",
 		// "-dCompatibilityLevel=1.4",
 		// "-dFirstPage=" + opts.first,
 		// "-dLastPage=" + opts.last,
-		"-dNumRenderingThreads=8",
+		"-dNumRenderingThreads=4",
 		"-dPDFSETTINGS=/" + quality,
 		"-sDEVICE=pdfwrite",
 		"-sOutputFile=-"
@@ -121,15 +129,16 @@ function throughGS(fpath, title, opts) {
 		var iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
 		var pdfxDefPath = tempfile('.ps');
 		var pdfxData = pdfxDefPs
-			.replace('!ICC!', iccpath.replace(/ /g, '\ '))
-			//.replace('!OUPUTCONDITION!', (opts.outputcondition || 'Commercial and specialty offset').replace(/ /g, '\ '))
-			.replace('!OUPUTCONDITIONID!', (opts.outputconditionid || 'unknown').replace(/ /g, '\ '))
-			.replace('!TITLE!', title.replace(/ /g, '\ '));
+			.replace('!ICC!', escapePsString(iccpath))
+			.replace('!OUPUTCONDITION!', escapePsString(opts.outputcondition || opts.icc))
+			.replace('!OUPUTCONDITIONID!', escapePsString(opts.outputconditionid || 'Custom'))
+			.replace('!TITLE!', escapePsString(title));
 		fs.writeFileSync(pdfxDefPath, pdfxData);
 
 		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');
 		args.push(
 			'-dPDFX=true',
+			// '-sColorConversionStrategy=/CMYK', // this fails to produce valid pdf/x-3
 			'-dProcessColorModel=/DeviceCMYK',
 			'-sDefaultRGBProfile=' + defaultIccPath,
 			'-sOutputICCProfile=' + iccpath,
@@ -148,4 +157,8 @@ function throughGS(fpath, title, opts) {
 	});
 
 	return gs.stdout;
+}
+
+function escapePsString(str) {
+	return str.replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/\//g, '\\/');
 }

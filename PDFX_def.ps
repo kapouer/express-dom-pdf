@@ -11,7 +11,7 @@ systemdict /ProcessColorModel known {
 
 % Define entries to the document Info dictionary :
 
-/ICCProfile !ICC! def
+/ICCProfile (!ICC!) def
 
 [ /GTS_PDFXVersion (PDF/X-3:2002) % Must be so (the standard requires).
   /Title (!TITLE!)                % Customize.
@@ -34,7 +34,7 @@ currentdict /ICCProfile known {
   /S /GTS_PDFX                                     % Must be so (the standard requires).
   /RegistryName (http://www.color.org)             % Must be so (the standard requires).
   /OutputConditionIdentifier (!OUPUTCONDITIONID!)  % Customize
-  /OutputCondition (Commercial and specialty offset defined by identifier)
+  /OutputCondition (!OUPUTCONDITION!)              % Customize
   currentdict /ICCProfile known {
     /DestOutputProfile {icc_PDFX}                  % Must be so (see above).
   } if

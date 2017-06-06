@@ -10,6 +10,8 @@ New in version 1.0:
   output condition identifier
 - filename is automatically built from document title or page uri
 - query parameters are stored in "pdf" object
+- a second argument of pdf() can be a map of parameters sets,
+  allowing easier configurations selection
 
 Breaking changes from 0.x versions:
 - filename parameter is ignored, pdf file is always attached
@@ -42,6 +44,14 @@ app.get('*', dom(pdf({
 	quality: 'screen',
 	orientation: 'portrait',
 	iccdir: require('path').join(__dirname, 'icc') // a directory containing icc profiles
+}, {
+	x3: {
+		'fogra39l': {
+			icc: 'ISOcoated_v2_300.icc',
+			outputcondition: 'Commercial and specialty offset, paper type 1 and 2, gloss or matt coated paper, positive plates, tone value increase curves A (CMY) and B (K), white backing.',
+			outputconditionid: 'FOGRA39L'
+		}
+	}
 })));
 
 // if other html pages are rendered by express-dom - but could be anything else
@@ -58,7 +68,8 @@ Example queries:
 ```
 http://localhost:3000/mypage?pdf
 http://localhost:3000/mypage?pdf[orientation]=landscape
-http://localhost:3000/mypage?pdf[margins]=20&pdf[icc]=ISOcoated_v2_300.icc&pdf[outputcondition]=Commercial%20and%20specialty%20offset&pdf[outputconditionid]=FOGRA39L
+http://localhost:3000/mypage?pdf[icc]=ISOcoated_v2_300.icc&pdf[outputcondition]=Commercial%20and%20specialty%20offset&pdf[outputconditionid]=FOGRA39L
+http://localhost:3000/mypage?pdf[margins]=20&pdf[x3]=fogra39l
 ```
 
 The iccdir option can not be set through query, only the icc option can.
