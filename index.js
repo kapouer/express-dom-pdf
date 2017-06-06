@@ -138,7 +138,7 @@ function throughGS(fpath, title, opts) {
 		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');
 		args.push(
 			'-dPDFX=true',
-			// '-sColorConversionStrategy=/CMYK', // this fails to produce valid pdf/x-3
+			'-sColorConversionStrategy=CMYK',
 			'-dProcessColorModel=/DeviceCMYK',
 			'-sDefaultRGBProfile=' + defaultIccPath,
 			'-sOutputICCProfile=' + iccpath,
