@@ -74,7 +74,7 @@ function pdfPlugin(page, settings, request, response) {
 			debug("getting pdf output of", page.uri);
 			return page.pdf(fpath, pdfOpts).then(function() {
 				debug("pdf ready");
-				response.attachment(title + '.pdf');
+				response.attachment(title.substring(0, 250) + '.pdf');
 
 				if (withGs) {
 					settings.output = throughGS(fpath, title, opts);
