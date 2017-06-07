@@ -67,15 +67,13 @@ function pdfPlugin(page, settings, request, response) {
 
 	page.when('idle', function() {
 		return page.run('document.title').then(function(title) {
-			debug("title of page", title);
 			if (!title) title = page.uri;
 			title = getSlug(title);
 			var fpath = tempfile('.pdf');
-			debug("getting pdf output of", page.uri);
+			debug("getting pdf output of", page.uri, "with title", title);
+			response.attachment(title.substring(0, 123) + '.pdf');
 			return page.pdf(fpath, pdfOpts).then(function() {
 				debug("pdf ready");
-				response.attachment(title.substring(0, 250) + '.pdf');
-
 				if (withGs) {
 					settings.output = throughGS(fpath, title, opts);
 				} else {
