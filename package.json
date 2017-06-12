@@ -1,6 +1,6 @@
 {
   "name": "express-dom-pdf",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "PDF plugin for express-dom",
   "main": "index.js",
   "scripts": {
