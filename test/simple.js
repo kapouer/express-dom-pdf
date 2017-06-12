@@ -24,7 +24,7 @@ dom.settings.timeout = 10000;
 dom.settings.console = true;
 
 describe("Simple setup", function suite() {
-	this.timeout(10000);
+	this.timeout(20000);
 	var server, port;
 
 	before(function(done) {
