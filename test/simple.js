@@ -67,7 +67,7 @@ describe("Simple setup", function suite() {
 		.then(function(res) {
 			expect(res.statusCode).to.be(200);
 			expect(res.body.length).to.be.greaterThan(30000);
-			expect(res.body.length).to.be.lessThan(40000);
+			expect(res.body.length).to.be.lessThan(47000);
 		});
 	});
 

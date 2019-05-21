@@ -82,8 +82,9 @@ exports.plugin = function(page, settings, request, response) {
 			if (!title) title = page.uri;
 			title = getSlug(title);
 			var fpath = tempfile('.pdf');
-			debug("getting pdf output of", page.uri, "with title", title);
+			debug("getting pdf with title", title, pdfOpts);
 			response.attachment(title.substring(0, 123) + '.pdf');
+
 			return page.pdf(fpath, pdfOpts).then(function() {
 				debug("pdf ready");
 				if (withGs) {
@@ -103,7 +104,7 @@ exports.plugin = function(page, settings, request, response) {
 			settings.output = err;
 		});
 	});
-}
+};
 
 exports.gs = function(fpath, title, opts) {
 	// http://milan.kupcevic.net/ghostscript-ps-pdf/
