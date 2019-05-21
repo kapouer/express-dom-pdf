@@ -86,7 +86,8 @@ exports.plugin = function(page, settings, request, response) {
 				} else {
 					settings.output = fs.createReadStream(fpath);
 				}
-				settings.output.on('close', function() {
+				settings.output.once('end', function() {
+					debug('done sending pdf');
 					fs.unlink(fpath, function(err) {
 						if (err) console.error("Error cleaning temp file", fpath, err);
 					});
