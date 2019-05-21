@@ -75,7 +75,7 @@ function pdfPlugin(page, settings, request, response) {
 			return page.pdf(fpath, pdfOpts).then(function() {
 				debug("pdf ready");
 				if (withGs) {
-					settings.output = throughGS(fpath, title, opts);
+					settings.output = exports.gs(fpath, title, opts);
 				} else {
 					settings.output = fs.createReadStream(fpath);
 				}
@@ -92,7 +92,7 @@ function pdfPlugin(page, settings, request, response) {
 	});
 }
 
-function throughGS(fpath, title, opts) {
+exports.gs = function(fpath, title, opts) {
 	// http://milan.kupcevic.net/ghostscript-ps-pdf/
 	// ALL OPTIONS http://ghostscript.com/doc/current/Ps2pdf.htm
 	// http://ghostscript.com/doc/current/VectorDevices.htm#PDFWRITE
@@ -105,8 +105,7 @@ function throughGS(fpath, title, opts) {
 	// printer: 300 dpi
 	// prepress: 300 dpi, color preserving
 	// default: almost identical to screen
-	var quality = opts.quality;
-	if (!quality) quality = "default";
+	var quality = opts.quality || 'default';
 	if (opts.icc) quality = "printer";
 	var args = [
 		"-q", // do not log to stdout
@@ -150,12 +149,24 @@ function throughGS(fpath, title, opts) {
 
 	var gs = child_process.spawn('gs', args);
 
+	var errors = [];
 	gs.stderr.on('data', function(data) {
-		console.error(data.toString());
+		errors.push(data.toString());
+	});
+	gs.on('exit', function(code) {
+		if (code !== 0 && errors.length) gs.stdout.emit('error', new Error(errors.join('')));
+		errors.length = 0;
+	});
+	gs.stdout.on('end', function() {
+		if (errors.length) {
+			// that's a workaround for an ugly situation
+			gs.stdout.emit('error', new Error(errors.join('')));
+			errors.length = 0;
+		}
 	});
 
 	return gs.stdout;
-}
+};
 
 function escapePsString(str) {
 	return str.replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/\//g, '\\/');
