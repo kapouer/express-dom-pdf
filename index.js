@@ -71,6 +71,11 @@ exports.plugin = function(page, settings, request, response) {
 	['icc', 'quality'].forEach(function(prop) {
 		if (opts[prop] != null) withGs++;
 	});
+	const qualities = ['default', 'screen', 'ebook', 'prepress', 'printer'];
+	if (opts.quality && qualities.includes(opts.quality) == false) {
+		response.sendStatus(400, 'quality must be one of ' + qualities.join(', '));
+		return;
+	}
 
 	page.when('idle', function() {
 		return page.run('document.title').then(function(title) {
