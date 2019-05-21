@@ -34,3 +34,4 @@ node_modules
 
 # ignore pdf tests
 test/pdf/*
+test/icc/*
