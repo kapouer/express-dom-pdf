@@ -24,25 +24,22 @@ var pdfxDefPs = fs.readFileSync(Path.join(__dirname, 'PDFX_def.ps')).toString();
 // quality: default, screen, ebook, prepress, printer
 // icc: profile filename found in iccdir
 
-module.exports = function(defaults, mappings) {
+exports = module.exports = function(defaults, mappings) {
 	return function(mw, settings, request, response) {
-		var opts = request.query.pdf;
-		if (opts == null) return Promise.reject('route');
+		if (request.query.pdf == null) return Promise.reject('route');
+		settings.pdf = {
+			defaults: defaults,
+			mappings: mappings,
+			params: request.query.pdf
+		};
 		delete request.query.pdf;
-		Object.assign(opts, defaults);
-
-		if (mappings) Object.keys(mappings).forEach(function(key) {
-			if (opts[key] === undefined) return;
-			Object.assign(opts, mappings[key][opts[key]] || {});
-		});
-
-		mw.load({plugins: [pdfPlugin.bind(opts)]});
+		mw.load({plugins: [module.exports.plugin]});
 		// sets the view to be fetched from current request url, effectively doing a subrequest
 		settings.view = settings.location;
 	};
 };
 
-function pdfPlugin(page, settings, request, response) {
+exports.plugin = function(page, settings, request, response) {
 	Object.assign(settings, {
 		'auto-load-images': true,
 		style: null,
@@ -53,7 +50,17 @@ function pdfPlugin(page, settings, request, response) {
 		runTimeout: 1000
 	});
 
-	var opts = this;
+	var pdf = settings.pdf || {};
+
+	var opts = request.query.pdf || pdf.params || {};
+	delete request.query.pdf;
+	Object.assign(opts, pdf.defaults);
+
+	var mappings = pdf.mappings;
+	if (mappings) Object.keys(mappings).forEach(function(key) {
+		if (opts[key] === undefined) return;
+		Object.assign(opts, mappings[key][opts[key]] || {});
+	});
 
 	var pdfOpts = {};
 	['orientation', 'paper', 'margins'].forEach(function(prop) {
