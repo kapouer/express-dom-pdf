@@ -52,9 +52,8 @@ exports.plugin = function(page, settings, request, response) {
 
 	var pdf = settings.pdf || {};
 
-	var opts = request.query.pdf || pdf.params || {};
+	var opts = Object.assign({}, pdf.defaults, request.query.pdf || pdf.params || {});
 	delete request.query.pdf;
-	Object.assign(opts, pdf.defaults);
 
 	var mappings = pdf.mappings;
 	if (mappings) Object.keys(mappings).forEach(function(key) {
