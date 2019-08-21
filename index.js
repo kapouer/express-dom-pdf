@@ -77,6 +77,7 @@ exports.plugin = function(page, settings, request, response) {
 	}
 
 	page.when('idle', function() {
+		settings.output = true; // take over output
 		return page.run('document.title').then(function(title) {
 			if (!title) title = page.uri;
 			title = getSlug(title);
