@@ -80,6 +80,14 @@ The iccdir option can not be set through query, only the icc option can.
 Styling
 -------
 
+You really want to set document width to a fixed value !
+
+```
+html {
+  width: calc((21cm - 3cm) * 2); /* double the printable area width */
+}
+```
+
 See [the wiki](https://github.com/kapouer/express-dom-pdf/wiki) for known limitations.
 
 ```
