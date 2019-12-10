@@ -77,13 +77,17 @@ exports.plugin = function(page, settings, request, response) {
 	}
 
 	page.when('idle', function() {
-		settings.output = true; // take over output
 		return page.run('document.title').then(function(title) {
 			if (!title) title = page.uri;
 			title = getSlug(title);
 			var fpath = tempfile('.pdf');
 			debug("getting pdf with title", title, pdfOpts);
-			response.attachment(title.substring(0, 123) + '.pdf');
+			if (response.statusCode && response.statusCode == 200) {
+				settings.output = true; // take over output
+				response.attachment(title.substring(0, 123) + '.pdf');
+			} else {
+				return;
+			}
 
 			return page.pdf(fpath, pdfOpts).then(function() {
 				debug("pdf ready");
