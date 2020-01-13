@@ -143,7 +143,7 @@ exports.gs = function(fpath, title, opts) {
 		"-sstdout=%stderr", // redirect postscript errors to stderr
 		"-dBATCH",
 		"-dNOPAUSE",
-		// "-dSAFER", // or else absolute paths cannot be specified
+		"-dNOSAFER", // or else absolute paths cannot be specified
 		// "-dNOOUTERSAVE",
 		// "-dCompatibilityLevel=1.4",
 		// "-dFirstPage=" + opts.first,
