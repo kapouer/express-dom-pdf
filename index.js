@@ -121,7 +121,7 @@ exports.plugin = function(page, settings, request, response) {
 				});
 			});
 		}).catch(function(err) {
-			response.status(500);
+			response.status(err.statusCode || err.status || 500);
 			settings.output = err;
 		});
 	});
