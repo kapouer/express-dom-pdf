@@ -54,6 +54,15 @@ app.get('*', dom(pdf({
 	}
 })));
 
+// or use a custom function that is called inside the prerendered DOM, after idle, and can return settings
+// depending on the loaded document.
+app.get('*', dom(pdf(defaults, function() {
+  return {
+    title: document.title, // converted to a file name
+    quality: new URLSearchParams(document.location.search).get('pdf.quality')
+  };
+})));
+
 // if other html pages are rendered by express-dom - but could be anything else
 app.get('*', dom().load());
 ```

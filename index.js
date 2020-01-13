@@ -50,36 +50,49 @@ exports.plugin = function(page, settings, request, response) {
 		runTimeout: 1000
 	});
 
-	var pdf = settings.pdf || {};
-
-	var opts = Object.assign({}, pdf.defaults, request.query.pdf || pdf.params || {});
-	delete request.query.pdf;
-
-	var mappings = pdf.mappings;
-	if (mappings) Object.keys(mappings).forEach(function(key) {
-		if (opts[key] === undefined) return;
-		Object.assign(opts, mappings[key][opts[key]] || {});
-	});
-
-	var pdfOpts = {};
-	['orientation', 'paper', 'margins'].forEach(function(prop) {
-		if (opts[prop] != null) pdfOpts[prop] = opts[prop];
-	});
-
-	var withGs = 0;
-	['icc', 'quality'].forEach(function(prop) {
-		if (opts[prop] != null) withGs++;
-	});
-	const qualities = ['default', 'screen', 'ebook', 'prepress', 'printer'];
-	if (opts.quality && qualities.includes(opts.quality) == false) {
-		response.sendStatus(400, 'quality must be one of ' + qualities.join(', '));
-		return;
-	}
-
 	page.when('idle', function() {
-		return page.run('document.title').then(function(title) {
-			if (!title) title = page.uri;
+		var pdf = settings.pdf || {};
+		var mappings = pdf.mappings;
+		var clientCb;
+		if (typeof mappings == "function") {
+			clientCb = mappings;
+			mappings = null;
+		} else {
+			clientCb = function() {
+				return {
+					title: document.title
+				};
+			};
+		}
+
+		return page.run(clientCb).then(function(obj) {
+			if (!obj) obj = {};
+			var title = obj.title || page.uri;
+			delete obj.title;
 			title = getSlug(title);
+
+			var opts = Object.assign({}, pdf.defaults || {}, pdf.params || {}, obj);
+
+			if (mappings) Object.keys(mappings).forEach(function(key) {
+				if (opts[key] === undefined) return;
+				Object.assign(opts, mappings[key][opts[key]] || {});
+			});
+
+
+			var pdfOpts = {};
+			['orientation', 'paper', 'margins'].forEach(function(prop) {
+				if (opts[prop] != null) pdfOpts[prop] = opts[prop];
+			});
+
+			var withGs = 0;
+			['icc', 'quality'].forEach(function(prop) {
+				if (opts[prop] != null) withGs++;
+			});
+			const qualities = ['default', 'screen', 'ebook', 'prepress', 'printer'];
+			if (opts.quality && qualities.includes(opts.quality) == false) {
+				delete opts.quality;
+			}
+
 			var fpath = tempfile('.pdf');
 			debug("getting pdf with title", title, pdfOpts);
 			if (response.statusCode && response.statusCode == 200) {
