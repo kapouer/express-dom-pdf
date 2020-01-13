@@ -82,16 +82,20 @@ exports.plugin = function(page, settings, request, response) {
 			var pdfOpts = {};
 			['orientation', 'paper', 'margins'].forEach(function(prop) {
 				if (opts[prop] != null) pdfOpts[prop] = opts[prop];
+				delete opts[prop];
 			});
 
 			var withGs = 0;
-			['icc', 'quality'].forEach(function(prop) {
-				if (opts[prop] != null) withGs++;
-			});
-			const qualities = ['default', 'screen', 'ebook', 'prepress', 'printer'];
+
+			const qualities = ['screen', 'ebook', 'prepress', 'printer'];
+			// the 'default' quality means not using gs at all
 			if (opts.quality && qualities.includes(opts.quality) == false) {
 				delete opts.quality;
 			}
+
+			['icc', 'quality'].forEach(function(prop) {
+				if (opts[prop] != null) withGs++;
+			});
 
 			var fpath = tempfile('.pdf');
 			debug("getting pdf with title", title, pdfOpts);
