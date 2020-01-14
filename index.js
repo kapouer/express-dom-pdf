@@ -58,10 +58,10 @@ exports.plugin = function(page, settings, request, response) {
 			clientCb = mappings;
 			mappings = null;
 		} else {
-			clientCb = function() {
-				return {
+			clientCb = function(cb) {
+				cb(null, {
 					title: document.title
-				};
+				});
 			};
 		}
 
