@@ -51,6 +51,11 @@ exports.plugin = function(page, settings, request, response) {
 	});
 
 	page.when('idle', function() {
+		if (response.statusCode && response.statusCode == 200) {
+			settings.output = true; // take over output
+		} else {
+			return;
+		}
 		var pdf = settings.pdf || {};
 		var mappings = pdf.mappings;
 		var clientCb;
@@ -99,12 +104,7 @@ exports.plugin = function(page, settings, request, response) {
 
 			var fpath = tempfile('.pdf');
 			debug("getting pdf with title", title, pdfOpts);
-			if (response.statusCode && response.statusCode == 200) {
-				settings.output = true; // take over output
-				response.attachment(title.substring(0, 123) + '.pdf');
-			} else {
-				return;
-			}
+			response.attachment(title.substring(0, 123) + '.pdf');
 
 			return page.pdf(fpath, pdfOpts).then(function() {
 				debug("pdf ready");
