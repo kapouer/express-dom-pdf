@@ -40,7 +40,7 @@ exports = module.exports = function(defaults, mappings) {
 };
 
 exports.plugin = function(page, settings, request, response) {
-	Object.assign({
+	const defs = {
 		'auto-load-images': true,
 		style: null,
 		stall: 2000,
@@ -48,7 +48,8 @@ exports.plugin = function(page, settings, request, response) {
 		stallTimeout: 0,
 		timeout: 5000,
 		runTimeout: 1000
-	}, settings);
+	};
+	for (var key in defs) if (settings[key] == null) settings[key] = defs[key];
 
 	page.when('idle', function() {
 		if (response.statusCode && response.statusCode == 200) {
