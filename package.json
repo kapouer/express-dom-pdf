@@ -25,7 +25,7 @@
     "express": "4.17.0",
     "express-dom": "^5.13.0",
     "got": "^9.6.0",
-    "mocha": "^6.1.4"
+    "mocha": "^8.2.1"
   },
   "peerDependencies": {
     "express-dom": "^5.13.0"
