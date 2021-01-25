@@ -40,7 +40,7 @@ exports = module.exports = function(defaults, mappings) {
 };
 
 exports.plugin = function(page, settings, request, response) {
-	Object.assign(settings, {
+	Object.assign({
 		'auto-load-images': true,
 		style: null,
 		stall: 2000,
@@ -48,7 +48,7 @@ exports.plugin = function(page, settings, request, response) {
 		stallTimeout: 0,
 		timeout: 5000,
 		runTimeout: 1000
-	});
+	}, settings);
 
 	page.when('idle', function() {
 		if (response.statusCode && response.statusCode == 200) {
@@ -70,7 +70,7 @@ exports.plugin = function(page, settings, request, response) {
 			};
 		}
 
-		return page.run(clientCb).then(function(obj) {
+		return page.run(clientCb).then(function (obj) {
 			if (!obj) obj = {};
 			var title = obj.title || page.uri;
 			delete obj.title;
@@ -78,14 +78,14 @@ exports.plugin = function(page, settings, request, response) {
 
 			var opts = Object.assign({}, pdf.defaults || {}, pdf.params || {}, obj);
 
-			if (mappings) Object.keys(mappings).forEach(function(key) {
+			if (mappings) Object.keys(mappings).forEach(function (key) {
 				if (opts[key] === undefined) return;
 				Object.assign(opts, mappings[key][opts[key]] || {});
 			});
 
 
 			var pdfOpts = {};
-			['orientation', 'paper', 'margins'].forEach(function(prop) {
+			['orientation', 'paper', 'margins'].forEach(function (prop) {
 				if (opts[prop] != null) pdfOpts[prop] = opts[prop];
 				delete opts[prop];
 			});
@@ -98,7 +98,7 @@ exports.plugin = function(page, settings, request, response) {
 				delete opts.quality;
 			}
 
-			['icc', 'quality'].forEach(function(prop) {
+			['icc', 'quality'].forEach(function (prop) {
 				if (opts[prop] != null) withGs++;
 			});
 
@@ -106,23 +106,20 @@ exports.plugin = function(page, settings, request, response) {
 			debug("getting pdf with title", title, pdfOpts);
 			response.attachment(title.substring(0, 123) + '.pdf');
 
-			return page.pdf(fpath, pdfOpts).then(function() {
+			return page.pdf(fpath, pdfOpts).then(function () {
 				debug("pdf ready");
 				if (withGs) {
 					settings.output = exports.gs(fpath, title, opts);
 				} else {
 					settings.output = fs.createReadStream(fpath);
 				}
-				settings.output.once('end', function() {
+				settings.output.once('end', function () {
 					debug('done sending pdf');
-					fs.unlink(fpath, function(err) {
+					fs.unlink(fpath, function (err) {
 						if (err) console.error("Error cleaning temp file", fpath, err);
 					});
 				});
 			});
-		}).catch(function(err) {
-			response.status(err.statusCode || err.status || 500);
-			settings.output = err;
 		});
 	});
 };
@@ -167,12 +164,11 @@ exports.gs = function(fpath, title, opts) {
 			.replace('!TITLE!', escapePsString(title));
 		fs.writeFileSync(pdfxDefPath, pdfxData);
 
-		var defaultIccPath = Path.join(opts.iccdir, 'sRGB.icc');
 		args.push(
 			'-dPDFX=true',
+			'-dRenderIntent=3',
 			'-sColorConversionStrategy=CMYK',
-			'-dProcessColorModel=/DeviceCMYK',
-			'-sDefaultRGBProfile=' + defaultIccPath,
+			'-sProcessColorModel=/DeviceCMYK',
 			'-sOutputICCProfile=' + iccpath,
 			pdfxDefPath
 		);
