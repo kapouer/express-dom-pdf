@@ -42,7 +42,8 @@
     ]
   },
   "mocha": {
-    "spec": "test/*.js"
+    "spec": "test/*.js",
+    "exit": true
   },
   "peerDependencies": {
     "express-dom": "^5.14.2"
