@@ -25,7 +25,7 @@ const pdfxDefPs = fs.readFileSync(Path.join(__dirname, 'PDFX_def.ps')).toString(
 // icc: profile filename found in iccdir
 
 exports = module.exports = function(defaults, mappings) {
-	return function(mw, settings, request, response) {
+	return function (mw, settings, request, response) {
 		if (request.query.pdf == null) return Promise.reject('route');
 		settings.pdf = {
 			defaults: defaults,
