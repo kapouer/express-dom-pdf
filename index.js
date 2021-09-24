@@ -169,7 +169,6 @@ exports.gs = function(fpath, title, opts) {
 			'-dPDFX=true',
 			'-dRenderIntent=3',
 			'-sColorConversionStrategy=CMYK',
-			'-sProcessColorModel=/DeviceCMYK',
 			'-sOutputICCProfile=' + iccpath,
 			pdfxDefPath
 		);
