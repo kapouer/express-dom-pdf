@@ -1,11 +1,11 @@
-var debug = require('debug')('express-dom-pdf');
-var tempfile = require('tempfile');
-var fs = require('fs');
-var child_process = require('child_process');
-var Path = require('path');
-var getSlug = require('speakingurl');
+const debug = require('debug')('express-dom-pdf');
+const tempfile = require('tempfile');
+const fs = require('fs');
+const child_process = require('child_process');
+const Path = require('path');
+const getSlug = require('speakingurl');
 
-var pdfxDefPs = fs.readFileSync(Path.join(__dirname, 'PDFX_def.ps')).toString();
+const pdfxDefPs = fs.readFileSync(Path.join(__dirname, 'PDFX_def.ps')).toString();
 
 // * express-dom-pdf static options *
 // iccdir: base directory for icc profiles
@@ -49,17 +49,17 @@ exports.plugin = function(page, settings, request, response) {
 		timeout: 5000,
 		runTimeout: 1000
 	};
-	for (var key in defs) if (settings[key] == null) settings[key] = defs[key];
+	for (const key in defs) if (settings[key] == null) settings[key] = defs[key];
 
-	page.when('idle', function() {
+	page.when('idle', () => {
 		if (response.statusCode && response.statusCode == 200) {
 			settings.output = true; // take over output
 		} else {
 			return;
 		}
-		var pdf = settings.pdf || {};
-		var mappings = pdf.mappings;
-		var clientCb;
+		const pdf = settings.pdf || {};
+		let mappings = pdf.mappings;
+		let clientCb;
 		if (typeof mappings == "function") {
 			clientCb = mappings;
 			mappings = null;
@@ -71,27 +71,27 @@ exports.plugin = function(page, settings, request, response) {
 			};
 		}
 
-		return page.run(clientCb).then(function (obj) {
+		return page.run(clientCb).then((obj) => {
 			if (!obj) obj = {};
-			var title = obj.title || page.uri;
+			let title = obj.title || page.uri;
 			delete obj.title;
 			title = getSlug(title);
 
-			var opts = Object.assign({}, pdf.defaults || {}, pdf.params || {}, obj);
+			const opts = Object.assign({}, pdf.defaults || {}, pdf.params || {}, obj);
 
-			if (mappings) Object.keys(mappings).forEach(function (key) {
+			if (mappings) Object.keys(mappings).forEach((key) => {
 				if (opts[key] === undefined) return;
 				Object.assign(opts, mappings[key][opts[key]] || {});
 			});
 
 
-			var pdfOpts = {};
-			['orientation', 'paper', 'margins'].forEach(function (prop) {
+			const pdfOpts = {};
+			['orientation', 'paper', 'margins'].forEach((prop) => {
 				if (opts[prop] != null) pdfOpts[prop] = opts[prop];
 				delete opts[prop];
 			});
 
-			var withGs = 0;
+			let withGs = 0;
 
 			const qualities = ['screen', 'ebook', 'prepress', 'printer'];
 			// the 'default' quality means not using gs at all
@@ -99,24 +99,24 @@ exports.plugin = function(page, settings, request, response) {
 				delete opts.quality;
 			}
 
-			['icc', 'quality'].forEach(function (prop) {
+			['icc', 'quality'].forEach((prop) => {
 				if (opts[prop] != null) withGs++;
 			});
 
-			var fpath = tempfile('.pdf');
+			const fpath = tempfile('.pdf');
 			debug("getting pdf with title", title, pdfOpts);
 			response.attachment(title.substring(0, 123) + '.pdf');
 
-			return page.pdf(fpath, pdfOpts).then(function () {
+			return page.pdf(fpath, pdfOpts).then(() => {
 				debug("pdf ready");
 				if (withGs) {
 					settings.output = exports.gs(fpath, title, opts);
 				} else {
 					settings.output = fs.createReadStream(fpath);
 				}
-				settings.output.once('end', function () {
+				settings.output.once('end', () => {
 					debug('done sending pdf');
-					fs.unlink(fpath, function (err) {
+					fs.unlink(fpath, (err) => {
 						if (err) console.error("Error cleaning temp file", fpath, err);
 					});
 				});
@@ -138,9 +138,9 @@ exports.gs = function(fpath, title, opts) {
 	// printer: 300 dpi
 	// prepress: 300 dpi, color preserving
 	// default: almost identical to screen
-	var quality = opts.quality || 'default';
+	let quality = opts.quality || 'default';
 	if (opts.icc) quality = "printer";
-	var args = [
+	const args = [
 		"-q", // do not log to stdout
 		"-sstdout=%stderr", // redirect postscript errors to stderr
 		"-dBATCH",
@@ -156,9 +156,9 @@ exports.gs = function(fpath, title, opts) {
 		"-sOutputFile=-"
 	];
 	if (opts.icc) {
-		var iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
-		var pdfxDefPath = tempfile('.ps');
-		var pdfxData = pdfxDefPs
+		const iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
+		const pdfxDefPath = tempfile('.ps');
+		const pdfxData = pdfxDefPs
 			.replace('!ICC!', escapePsString(iccpath))
 			.replace('!OUPUTCONDITION!', escapePsString(opts.outputcondition || opts.icc))
 			.replace('!OUPUTCONDITIONID!', escapePsString(opts.outputconditionid || 'Custom'))
@@ -179,17 +179,17 @@ exports.gs = function(fpath, title, opts) {
 
 	debug("gs", args.join(" "));
 
-	var gs = child_process.spawn('gs', args);
+	const gs = child_process.spawn('gs', args);
 
-	var errors = [];
-	gs.stderr.on('data', function(data) {
+	const errors = [];
+	gs.stderr.on('data', (data) => {
 		errors.push(data.toString());
 	});
-	gs.on('exit', function(code) {
+	gs.on('exit', (code) => {
 		if (code !== 0 && errors.length) gs.stdout.emit('error', new Error(errors.join('')));
 		errors.length = 0;
 	});
-	gs.stdout.on('end', function() {
+	gs.stdout.on('end', () => {
 		if (errors.length) {
 			// that's a workaround for an ugly situation
 			gs.stdout.emit('error', new Error(errors.join('')));
