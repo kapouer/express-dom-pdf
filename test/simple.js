@@ -55,7 +55,7 @@ describe("Simple setup", () => {
 	it("compresses pdf with gs screen quality", async () => {
 		const {
 			statusCode, body
-		} = await request(`${host}/index.html?pdf[quality]=screen`);
+		} = await request(`${host}/index.html?pdf[quality]=screen&pdf[paper]=a4`);
 		assert.equal(statusCode, 200);
 		const len = (await body.arrayBuffer()).length;
 		assert.ok(len <= 45000);

@@ -14,6 +14,12 @@ const Path = require('path');
 const getSlug = require('speakingurl');
 
 const pdfxCache = new Map();
+const pdfQualities = {
+	screen: 1,
+	ebook: 2,
+	prepress: 4,
+	printer: 4
+};
 
 module.exports = function register(dom) {
 	dom.settings.pdf = {
@@ -28,7 +34,8 @@ module.exports = function register(dom) {
 };
 
 async function pdfHelper(mw, settings, request, response) {
-	if (request.query.pdf != null) {
+	const { pdf } = request.query;
+	if (pdf != null) {
 		settings.pdf = Object.assign(
 			{},
 			mw.constructor.settings.pdf,
@@ -36,6 +43,7 @@ async function pdfHelper(mw, settings, request, response) {
 		);
 		settings.load.plugins = settings.pdf.plugins;
 		settings.location.searchParams.delete('pdf');
+		if (pdf.quality) settings.scale = pdfQualities[pdf.quality] ?? 1;
 	}
 }
 
@@ -47,6 +55,11 @@ async function pdfPlugin(page, settings, req, res) {
 	};
 	for (const key in defs) if (settings[key] == null) settings[key] = defs[key];
 
+	page.addStyleTag({
+		content: `html {
+			-webkit-print-color-adjust: exact !important;
+		}`});
+
 	page.on('idle', async () => {
 		if (res.statusCode == 200) {
 			settings.output = true; // take over output
@@ -57,6 +70,7 @@ async function pdfPlugin(page, settings, req, res) {
 
 		const title = getSlug(await page.title() ?? settings.location.pathname);
 		const pdfParams = typeof req.query.pdf == "string" ? {} : req.query.pdf;
+
 		const opts = {
 			...pdf.defaults,
 			...pdfParams
@@ -70,11 +84,17 @@ async function pdfPlugin(page, settings, req, res) {
 
 		for (const [key, obj] of Object.entries(pdf.mappings || [])) {
 			if (opts[key] === undefined) continue;
-			Object.assign(opts, obj[opts[key]] ?? {});
+			if (typeof obj == "string") {
+				opts[obj] = opts[key];
+				delete opts[key];
+			} else {
+				Object.assign(opts, obj[opts[key]] ?? {});
+			}
 		}
 
 		const pdfOpts = {
-			preferCSSPageSize: false
+			preferCSSPageSize: false,
+			printBackground: true
 		};
 		if (typeof opts.margin == "string") opts.margin = {
 			left: opts.margin, right: opts.margin,
@@ -86,9 +106,8 @@ async function pdfPlugin(page, settings, req, res) {
 		}
 
 		let withGs = 0;
-		const qualities = ['screen', 'ebook', 'prepress', 'printer'];
 		// the 'default' quality means not using gs at all
-		if (opts.quality && qualities.includes(opts.quality) == false) {
+		if (opts.quality && !pdfQualities[opts.quality]) {
 			delete opts.quality;
 		}
 
@@ -103,6 +122,7 @@ async function pdfPlugin(page, settings, req, res) {
 
 		await page.pdf(pdfOpts);
 		debug("pdf ready");
+
 		if (withGs) {
 			settings.output = await ghostscript({
 				path: pdfOpts.path,
