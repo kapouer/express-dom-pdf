@@ -65,6 +65,7 @@ async function pdfPlugin(page, settings, req, res) {
 		const { mappings } = pdf;
 
 		if (!mappings.paper) mappings.paper = 'format';
+		if (!mappings.ranges) mappings.ranges = 'pageRanges';
 		opts.landscape = opts.orientation == "landscape";
 
 		for (const [key, obj] of Object.entries(pdf.mappings || [])) {
@@ -79,7 +80,7 @@ async function pdfPlugin(page, settings, req, res) {
 			left: opts.margin, right: opts.margin,
 			top: opts.margin, bottom: opts.margin
 		};
-		for (const prop of ['format', 'margin', 'landscape']) {
+		for (const prop of ['format', 'margin', 'landscape', 'pageRanges']) {
 			if (opts[prop] != null) pdfOpts[prop] = opts[prop];
 			delete opts[prop];
 		}
