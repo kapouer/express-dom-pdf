@@ -15,7 +15,7 @@ pdf.mappings = {
 			outputconditionid: 'FOGRA39L'
 		}
 	}
-}
+};
 
 dom.settings.stall = 5000;
 dom.settings.allow = 'all';
