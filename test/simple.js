@@ -1,14 +1,13 @@
-const expect = require('expect.js');
 const express = require('express');
-const got = require('got');
-const Path = require('path');
-const fs = require('fs');
+const assert = require('node:assert').strict;
+const { once } = require('node:events');
+const Path = require('node:path');
+const { request } = require('undici');
 
-const host = "http://localhost";
 const dom = require('express-dom');
-const pdf = require('..')({
-	iccdir: Path.join(__dirname, 'icc')
-}, {
+const pdf = require('..')(dom);
+pdf.defaults.iccdir = Path.join(__dirname, 'icc');
+pdf.mappings = {
 	x3: {
 		fogra39l: {
 			icc: 'ISOcoated_v2_300_eci.icc',
@@ -16,74 +15,68 @@ const pdf = require('..')({
 			outputconditionid: 'FOGRA39L'
 		}
 	}
-});
+}
 
 dom.settings.stall = 5000;
 dom.settings.allow = 'all';
 dom.settings.timeout = 10000;
 dom.settings.console = true;
 
-describe("Simple setup", function suite() {
-	this.timeout(20000);
-	let server, port;
+describe("Simple setup", () => {
+	let server, host;
 
-	before((done) => {
+	before(async () => {
 		const app = express();
 		app.set('views', __dirname + '/public');
-		app.get(/\.html$/, dom(pdf));
-		app.get(/\.(json|js|css|png|jpg|html)$/, express.static(app.get('views')));
+		app.get(/\.(json|js|css|png|jpg)$/, express.static(app.get('views')));
+		app.get(/\.html$/, dom('pdf').load());
 
-
-		server = app.listen((err) => {
-			if (err) console.error(err);
-			port = server.address().port;
-			done();
-		});
+		server = app.listen();
+		await once(server, 'listening');
+		host = `http://localhost:${server.address().port}`;
 	});
 
-	after(() => {
+	after(async () => {
 		server.close();
+		await dom.destroy();
 	});
 
-
-	it("should get a non-compressed pdf without gs", () => {
-		return got(host + ':' + port + '/index.html?pdf')
-			.then((res) => {
-				expect(res.statusCode).to.be(200);
-				expect(res.body.length).to.be.greaterThan(80000);
-			});
+	it("gets pdf without gs", async () => {
+		const { statusCode, body, headers } = await request(`${host}/index.html?pdf`);
+		assert.equal(statusCode, 200);
+		assert.equal(
+			headers['content-disposition'],
+			'attachment; filename="test-title.pdf"'
+		);
+		const len = (await body.arrayBuffer()).length;
+		assert.ok(len >= 100000);
 	});
 
-	it("should get a smaller pdf with gs screen quality", () => {
-		return got(host + ':' + port + '/index.html?pdf[quality]=screen')
-			.then((res) => {
-				expect(res.statusCode).to.be(200);
-				expect(res.body.length).to.be.lessThan(30000);
-			});
+	it("compresses pdf with gs screen quality", async () => {
+		const {
+			statusCode, body
+		} = await request(`${host}/index.html?pdf[quality]=screen`);
+		assert.equal(statusCode, 200);
+		const len = (await body.arrayBuffer()).length;
+		assert.ok(len <= 45000);
 	});
 
-	it("should get a smaller pdf yet bigger than screen with gs prepress quality", () => {
-		return got(host + ':' + port + '/index.html?pdf[quality]=prepress')
-			.then((res) => {
-				expect(res.statusCode).to.be(200);
-				expect(res.body.length).to.be.greaterThan(30000);
-				expect(res.body.length).to.be.lessThan(47000);
-			});
+	it("compresses high-quality pdf with prepress quality", async () => {
+		const {
+			statusCode, body
+		} = await request(`${host}/index.html?pdf[quality]=prepress`);
+		assert.equal(statusCode, 200);
+		const len = (await body.arrayBuffer()).length;
+		assert.ok(len <= 65000);
+		assert.ok(len >= 55000);
 	});
 
-	it("should get printer quality pdf with predefined icc profile", (done) => {
-		got.stream(host + ':' + port + '/index.html?pdf[x3]=fogra39l')
-			.pipe(fs.createWriteStream(Path.join(__dirname, 'pdf', 'test.pdf')))
-			.on('finish', done);
-	});
-
-	it("should get a pdf with title as filename", () => {
-		return got(host + ':' + port + '/index.html?pdf')
-			.then((res) => {
-				expect(res.statusCode).to.be(200);
-				expect(res.headers['content-disposition']).to.be('attachment; filename="test-title.pdf"');
-				expect(res.body.length).to.be.greaterThan(80000);
-			});
+	it("get a pdf x3 pdf with predefined icc profile", async () => {
+		const {
+			statusCode,
+			// body // TODO check pdf format
+		} = await request(`${host}/index.html?pdf[x3]=fogra39l`);
+		assert.equal(statusCode, 200);
 	});
 
 });

@@ -1,137 +1,124 @@
 const debug = require('debug')('express-dom-pdf');
 const tempfile = require('tempfile');
-const fs = require('fs');
+const { once } = require('events');
+const {
+	promises: {
+		writeFile,
+		readFile,
+		unlink
+	},
+	createReadStream
+} = require('fs');
 const child_process = require('child_process');
 const Path = require('path');
 const getSlug = require('speakingurl');
 
-const pdfxDefPs = fs.readFileSync(Path.join(__dirname, 'PDFX_def.ps')).toString();
+const pdfxCache = new Map();
 
-// * express-dom-pdf static options *
-// iccdir: base directory for icc profiles
-
-// * express-dom-pdf dynamic options *
-// disposition: inline, attachment
-
-// * webkitgtk dynamic options *
-// orientation: portrait, landscape
-// paper: iso_a3, iso_a4, iso_a5, iso_b5, na_letter, na_executive, na_legal...
-//  see https://developer.gnome.org/gtk3/stable/GtkPaperSize.html
-// margins: number in pt, or string with mm, in, pt unit
-// margins: an object with unit, left, top, right, bottom properties
-
-// * ghostscript dynamic options *
-// quality: default, screen, ebook, prepress, printer
-// icc: profile filename found in iccdir
-
-exports = module.exports = function(defaults, mappings) {
-	return function (mw, settings, request, response) {
-		if (request.query.pdf == null) return Promise.reject('route');
-		settings.pdf = {
-			defaults: defaults,
-			mappings: mappings,
-			params: request.query.pdf
-		};
-		delete request.query.pdf;
-		mw.load({plugins: [module.exports.plugin]});
-		// sets the view to be fetched from current request url, effectively doing a subrequest
-		settings.view = settings.location;
+module.exports = function register(dom) {
+	dom.settings.pdf = {
+		plugins: ['pdf'],
+		pdfx: Path.join(__dirname, 'PDFX_def.ps'),
+		defaults: {},
+		mappings: {}
 	};
+	dom.helpers.pdf = pdfHelper;
+	dom.plugins.pdf = pdfPlugin;
+	return dom.settings.pdf;
 };
 
-exports.plugin = function(page, settings, request, response) {
+async function pdfHelper(mw, settings, request, response) {
+	if (request.query.pdf != null) {
+		settings.pdf = Object.assign(
+			{},
+			mw.constructor.settings.pdf,
+			settings.pdf ?? {}
+		);
+		settings.load.plugins = settings.pdf.plugins;
+		settings.location.searchParams.delete('pdf');
+	}
+}
+
+async function pdfPlugin(page, settings, req, res) {
 	const defs = {
-		'auto-load-images': true,
-		style: null,
-		stall: 2000,
-		stallInterval: 0,
-		stallTimeout: 0,
-		timeout: 5000,
-		runTimeout: 1000
+		hide: false,
+		stall: 5000,
+		timeout: 5000
 	};
 	for (const key in defs) if (settings[key] == null) settings[key] = defs[key];
 
-	page.when('idle', () => {
-		if (response.statusCode && response.statusCode == 200) {
+	page.on('idle', async () => {
+		if (res.statusCode == 200) {
 			settings.output = true; // take over output
 		} else {
 			return;
 		}
 		const pdf = settings.pdf || {};
-		let mappings = pdf.mappings;
-		let clientCb;
-		if (typeof mappings == "function") {
-			clientCb = mappings;
-			mappings = null;
-		} else {
-			clientCb = function(cb) {
-				cb(null, {
-					title: document.title
-				});
-			};
+
+		const title = getSlug(await page.title() ?? settings.location.pathname);
+		const pdfParams = typeof req.query.pdf == "string" ? {} : req.query.pdf;
+		const opts = {
+			...pdf.defaults,
+			...pdfParams
+		};
+
+		const { mappings } = pdf;
+
+		if (!mappings.paper) mappings.paper = 'format';
+		opts.landscape = opts.orientation == "landscape";
+
+		for (const [key, obj] of Object.entries(pdf.mappings || [])) {
+			if (opts[key] === undefined) continue;
+			Object.assign(opts, obj[opts[key]] ?? {});
 		}
 
-		return page.run(clientCb).then((obj) => {
-			if (!obj) obj = {};
-			let title = obj.title || page.uri;
-			delete obj.title;
-			title = getSlug(title);
+		const pdfOpts = {
+			preferCSSPageSize: false
+		};
+		if (typeof opts.margin == "string") opts.margin = {
+			left: opts.margin, right: opts.margin,
+			top: opts.margin, bottom: opts.margin
+		};
+		for (const prop of ['format', 'margin', 'landscape']) {
+			if (opts[prop] != null) pdfOpts[prop] = opts[prop];
+			delete opts[prop];
+		}
 
-			const opts = Object.assign({}, pdf.defaults || {}, pdf.params || {}, obj);
+		let withGs = 0;
+		const qualities = ['screen', 'ebook', 'prepress', 'printer'];
+		// the 'default' quality means not using gs at all
+		if (opts.quality && qualities.includes(opts.quality) == false) {
+			delete opts.quality;
+		}
 
-			if (mappings) Object.keys(mappings).forEach((key) => {
-				if (opts[key] === undefined) return;
-				Object.assign(opts, mappings[key][opts[key]] || {});
-			});
-
-
-			const pdfOpts = {};
-			['orientation', 'paper', 'margins'].forEach((prop) => {
-				if (opts[prop] != null) pdfOpts[prop] = opts[prop];
-				delete opts[prop];
-			});
-
-			let withGs = 0;
-
-			const qualities = ['screen', 'ebook', 'prepress', 'printer'];
-			// the 'default' quality means not using gs at all
-			if (opts.quality && qualities.includes(opts.quality) == false) {
-				delete opts.quality;
-			}
-
-			['icc', 'quality'].forEach((prop) => {
-				if (opts[prop] != null) withGs++;
-			});
-
-			const fpath = tempfile('.pdf');
-			debug("getting pdf with title", title, pdfOpts);
-			response.attachment(title.substring(0, 123) + '.pdf');
-
-			return page.pdf(fpath, pdfOpts).then(() => {
-				debug("pdf ready");
-				if (withGs) {
-					settings.output = exports.gs(fpath, title, opts);
-				} else {
-					settings.output = fs.createReadStream(fpath);
-				}
-				settings.output.once('end', () => {
-					debug('done sending pdf');
-					fs.unlink(fpath, (err) => {
-						if (err) console.error("Error cleaning temp file", fpath, err);
-					});
-				});
-			});
+		['icc', 'quality'].forEach((prop) => {
+			if (opts[prop] != null) withGs++;
 		});
-	});
-};
 
-exports.gs = function(fpath, title, opts) {
+		debug("getting pdf with title", title, pdfOpts);
+		res.attachment(title.substring(0, 123) + '.pdf');
+
+		pdfOpts.path = tempfile('.pdf');
+
+		await page.pdf(pdfOpts);
+		debug("pdf ready");
+		if (withGs) {
+			settings.output = await ghostscript({
+				path: pdfOpts.path,
+				title,
+				pdfx: pdf.pdfx
+			}, opts);
+		} else {
+			settings.output = createReadStream(pdfOpts.path);
+		}
+		once(settings.output, 'end').then(() => unlink(pdfOpts.path));
+	});
+}
+
+async function ghostscript({ path, title, pdfx }, opts) {
 	// http://milan.kupcevic.net/ghostscript-ps-pdf/
 	// ALL OPTIONS http://ghostscript.com/doc/current/Ps2pdf.htm
 	// http://ghostscript.com/doc/current/VectorDevices.htm#PDFWRITE
-	// PDF/X-3 see also http://www.color.org/chardata/drsection1.xalter
-	// and explanations about ICC, OutputConditionIdentifier is
-	// https://stackoverflow.com/questions/35705099/ghostscript-why-must-i-provide-a-pdfa-def-ps-for-pdf-a-conversion
 	// the images quality
 	// screen: 72 dpi
 	// ebook: 150 dpi
@@ -145,25 +132,36 @@ exports.gs = function(fpath, title, opts) {
 		"-sstdout=%stderr", // redirect postscript errors to stderr
 		"-dBATCH",
 		"-dNOPAUSE",
-		"-dNOSAFER", // or else absolute paths cannot be specified
+		// "-dNOSAFER", // or else absolute paths cannot be specified
 		// "-dNOOUTERSAVE",
 		// "-dCompatibilityLevel=1.4",
 		// "-dFirstPage=" + opts.first,
 		// "-dLastPage=" + opts.last,
-		"-dNumRenderingThreads=4",
+		// "-dNumRenderingThreads=4",
 		"-dPDFSETTINGS=/" + quality,
 		"-sDEVICE=pdfwrite",
 		"-sOutputFile=-"
 	];
 	if (opts.icc) {
+		/*
+		 http://www.color.org/chardata/drsection1.xalter
+		 and explanations about ICC, OutputConditionIdentifier is
+		 https://stackoverflow.com/questions/35705099/ghostscript-why-must-i-provide-a-pdfa-def-ps-for-pdf-a-conversion
+		 https://www.ghostscript.com/doc/9.56.1/VectorDevices.htm#PDFX
+		*/
 		const iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
 		const pdfxDefPath = tempfile('.ps');
-		const pdfxData = pdfxDefPs
+		if (!pdfxCache.has(pdfx)) {
+			const pdfxBuf = await readFile(pdfx);
+			pdfxCache.set(pdfx, pdfxBuf.toString());
+		}
+		const pdfxData = pdfxCache.get(pdfx)
 			.replace('!ICC!', escapePsString(iccpath))
 			.replace('!OUPUTCONDITION!', escapePsString(opts.outputcondition || opts.icc))
 			.replace('!OUPUTCONDITIONID!', escapePsString(opts.outputconditionid || 'Custom'))
 			.replace('!TITLE!', escapePsString(title));
-		fs.writeFileSync(pdfxDefPath, pdfxData);
+
+		await writeFile(pdfxDefPath, pdfxData);
 
 		args.push(
 			'-dPDFX=true',
@@ -174,7 +172,7 @@ exports.gs = function(fpath, title, opts) {
 		);
 	}
 
-	args.push(fpath);
+	args.push(path);
 
 	debug("gs", args.join(" "));
 
@@ -185,7 +183,9 @@ exports.gs = function(fpath, title, opts) {
 		errors.push(data.toString());
 	});
 	gs.on('exit', (code) => {
-		if (code !== 0 && errors.length) gs.stdout.emit('error', new Error(errors.join('')));
+		if (code !== 0 && errors.length) {
+			gs.stdout.emit('error', new Error(errors.join('')));
+		}
 		errors.length = 0;
 	});
 	gs.stdout.on('end', () => {
@@ -197,7 +197,7 @@ exports.gs = function(fpath, title, opts) {
 	});
 
 	return gs.stdout;
-};
+}
 
 function escapePsString(str) {
 	return str.replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/\//g, '\\/');

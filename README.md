@@ -2,96 +2,75 @@
 
 PDF plugin for express-dom
 
-Uses webkitgtk addon to render html pages to pdf, and optionally uses
-ghostscript's 'gs' executable to compress or convert the pdf.
+Prerenders html in visible mode, then outputs pdf,
+and optionally use ghostscript to compress the pdf to predefined qualities.
 
-New in version 1.0:
-- validable pdf/x-3 with custom output ICC profile, output condition, and
-  output condition identifier
-- filename is automatically built from document title or page uri
-- query parameters are stored in "pdf" object
-- a second argument of pdf() can be a map of parameters sets,
-  allowing easier configurations selection
+If your ghostscript version supports it, pdf/x-3 output is supported.
 
-Breaking changes from 0.x versions:
-- filename parameter is ignored, pdf file is always attached
-- query parameters can no longer be renamed
-- query parameters must all belong to pdf object and "format" parameter no
-  longer exists. Use an empty "?pdf" query parameter to print without options.
-
-
-Install
--------
-
-npm install express-dom-pdf --save
-
-
-Usage
------
+## Usage
 
 This plugin for express-dom can run aside other rendering engines, one just has
 to install the middleware before the one that is actually rendering html.
 
-```
-var pdf = require('express-dom-pdf');
-var app = require('express')();
+```js
+const pdf = require('express-dom-pdf');
+const app = require('express')();
 
-// app.get('*', dom(pdf())); // simply append format=pdf to url query to trigger
-
-// or configure defaults and mappings
-app.get('*', dom(pdf({
-	// a default value for quality forces gs conversion
-	quality: 'screen',
-	orientation: 'portrait',
-	iccdir: require('path').join(__dirname, 'icc') // a directory containing icc profiles
+const pdfHelper = pdf({
+ // a default value for quality forces gs conversion
+ quality: 'screen',
+ orientation: 'portrait',
+ // a directory containing icc profiles
+ iccdir: require('path').join(__dirname, 'icc')
 }, {
-	x3: {
-		'fogra39l': {
-			icc: 'ISOcoated_v2_300.icc',
-			outputcondition: 'Commercial and specialty offset, paper type 1 and 2, gloss or matt coated paper, positive plates, tone value increase curves A (CMY) and B (K), white backing.',
-			outputconditionid: 'FOGRA39L'
-		}
-	}
-})));
+ x3: {
+  'fogra39l': {
+   icc: 'ISOcoated_v2_300.icc',
+   outputcondition: 'Commercial and specialty offset, paper type 1 and 2, gloss or matt coated paper, positive plates, tone value increase curves A (CMY) and B (K), white backing.',
+   outputconditionid: 'FOGRA39L'
+  }
+ }
+});
 
-// or use a custom function that is called inside the prerendered DOM, after idle, and can return settings
-// depending on the loaded document.
-app.get('*', dom(pdf(defaults, function() {
-  return {
-    title: document.title, // converted to a file name
-    quality: new URLSearchParams(document.location.search).get('pdf.quality')
-  };
-})));
-
-// if other html pages are rendered by express-dom - but could be anything else
-app.get('*', dom().load());
+// pdf is rendered only if query does have some "pdf" query parameters
+app.get('*', dom(pdf).load());
 ```
 
-The caught parameters are removed from subrequest's query.
+The pdf query parameters are removed from the page location.
 
-The `quality` or `icc` parameters triggers ghostscript compression.
+## Options
 
-Ghostscript does not need to be installed unless this parameter is used.
+Browser options:
 
-Example queries:
-```
-http://localhost:3000/mypage?pdf
-http://localhost:3000/mypage?pdf[orientation]=landscape
-http://localhost:3000/mypage?pdf[icc]=ISOcoated_v2_300.icc&pdf[outputcondition]=Commercial%20and%20specialty%20offset&pdf[outputconditionid]=FOGRA39L
-http://localhost:3000/mypage?pdf[margins]=20&pdf[x3]=fogra39l
-```
+- orientation: portrait, landscape
+- paper: format iso_a3, iso_a4, iso_a5, iso_b5, na_letter, na_executive, na_legal...
+- margin: single value or {top, right, left, bottom} object with css values
 
-The iccdir option can not be set through query, only the icc option can.
+Ghostscript options:
+
+- quality: default, screen, ebook, prepress, printer
+- icc: profile filename found in iccdir
+
+Constant iccdir option:
+
 - `${iccdir}/${icc}` must be an existing file name
 - `${iccdir}/sRGB.icc` must exists, because the default RGB profile is needed for conversion to CMYK.
 
+The `quality` or `icc` parameters triggers ghostscript compression.
+Ghostscript does not need to be installed unless this parameter is used.
 
-Styling
--------
+## Example queries
 
-You really want to set document width to a fixed value !
+> /mypage?pdf
+> /mypage?pdf[orientation]=landscape
+> /mypage?pdf[icc]=ISOcoated_v2_300.icc&pdf[outputcondition]=Commercial%20and%20specialty%20offset&pdf[outputconditionid]=FOGRA39L
+> /mypage?pdf[margin]=2rem&pdf[x3]=fogra39l
 
-```
+## Styling
+
+Set document width to a known value:
+
+```css
 html {
   width: calc((21cm - 3cm) * 2); /* double the printable area width */
 }
@@ -99,13 +78,13 @@ html {
 
 See [the wiki](https://github.com/kapouer/express-dom-pdf/wiki) for known limitations.
 
-```
+```html
 <link rel="stylesheet" href="style.css" media="print" />
 ```
 
 or in a stylesheet, using a media query
 
-```
+```css
 @media print {
   article {
     page-break-inside: avoid;
@@ -115,11 +94,7 @@ or in a stylesheet, using a media query
 
 Read also [page break properties](http://caniuse.com/#feat=css-page-break),
 in particular note that all browsers support these styles quite well:
-* page-break-before: auto | always
-* page-break-after: auto | always
-* page-break-inside: auto | avoid
 
-Unsupported as of webkit2gtk <= 2.17:
-- css multicolumn layout is only supported when not printing, so even if it is
-  rendered nicely using webkitgtk, it won't be rendered in the pdf.
-
+- page-break-before: auto | always
+- page-break-after: auto | always
+- page-break-inside: auto | avoid
