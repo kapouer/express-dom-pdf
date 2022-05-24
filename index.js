@@ -1,6 +1,6 @@
 const debug = require('debug')('express-dom-pdf');
 const tempfile = require('tempfile');
-const { once } = require('events');
+const { once } = require('node:events');
 const {
 	promises: {
 		writeFile,
@@ -9,8 +9,8 @@ const {
 	},
 	createReadStream
 } = require('fs');
-const child_process = require('child_process');
-const Path = require('path');
+const child_process = require('node:child_process');
+const Path = require('node:path');
 const getSlug = require('speakingurl');
 
 const pdfxCache = new Map();
