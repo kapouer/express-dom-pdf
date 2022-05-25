@@ -84,7 +84,7 @@ async function pdfPlugin(page, settings, req, res) {
 
 	if (preset.scale) settings.scale = preset.scale;
 
-	Object.assign(policies, settings.pdf.policies);
+	Object.assign(policies, dom.settings.pdf.policies);
 
 	page.on('idle', async () => {
 		const title = getSlug(await page.title() ?? location.pathname);
