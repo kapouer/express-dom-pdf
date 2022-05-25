@@ -84,12 +84,6 @@ async function pdfPlugin(page, settings, req, res) {
 	policies.style = "'self' 'unsafe-inline' https:";
 
 	page.on('idle', async () => {
-		if (res.statusCode == 200) {
-			settings.output = true; // take over output before any other plugin
-		} else {
-			return;
-		}
-
 		const title = getSlug(await page.title() ?? location.pathname);
 
 		const outputPath = tempfile('.pdf');
