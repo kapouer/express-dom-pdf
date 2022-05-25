@@ -8,135 +8,114 @@ const {
 		unlink
 	},
 	createReadStream
-} = require('fs');
+} = require('node:fs');
 const child_process = require('node:child_process');
 const Path = require('node:path');
 const getSlug = require('speakingurl');
+const dom = require('express-dom');
 
 const pdfxCache = new Map();
-const pdfQualities = {
-	screen: 1,
-	ebook: 2,
-	prepress: 4,
-	printer: 4
-};
 
-module.exports = function register(dom) {
-	dom.settings.pdf = {
-		plugins: ['pdf'],
-		pdfx: Path.join(__dirname, 'PDFX_def.ps'),
-		defaults: {},
-		mappings: {}
-	};
-	dom.helpers.pdf = pdfHelper;
-	dom.plugins.pdf = pdfPlugin;
-	return dom.settings.pdf;
-};
-
-async function pdfHelper(mw, settings, request, response) {
-	const { pdf } = request.query;
-	if (pdf != null) {
-		settings.pdf = Object.assign(
-			{},
-			mw.constructor.settings.pdf,
-			settings.pdf ?? {}
-		);
-		settings.load.plugins = settings.pdf.plugins;
-		settings.location.searchParams.delete('pdf');
-		if (pdf.quality) settings.scale = pdfQualities[pdf.quality] ?? 1;
+dom.helpers.pdf = pdfHelper;
+dom.plugins.pdf = pdfPlugin;
+dom.settings.pdf = {
+	timeout: 30000, // pdf might load many images
+	pdfx: Path.join(__dirname, 'PDFX_def.ps'),
+	iccdir: Path.join(__dirname, 'icc'),
+	plugins: [],
+	presets: {
+		default: {
+			quality: false
+		},
+		screen: {
+			quality: 'screen',
+			scale: 1
+		},
+		ebook: {
+			quality: 'ebook',
+			scale: 2
+		},
+		printer: {
+			quality: 'printer',
+			scale: 4
+		},
+		prepress: {
+			quality: 'prepress',
+			scale: 4
+		}
 	}
+};
+
+module.exports = dom.settings.pdf;
+
+async function pdfHelper(mw, settings, req, res) {
+	const { presets, plugins } = dom.settings.pdf;
+	const { pdf } = req.query;
+	if (pdf === undefined) return;
+	const preset = presets[pdf || 'default'];
+	if (!preset) return;
+	if (preset.quality && ["screen", "ebook", "printer", "prepress"].includes(preset.quality) == false) {
+		console.warn("Uknown pdf preset quality", preset.quality);
+		delete preset.quality;
+	}
+
+	Object.assign(settings.load, {
+		preset,
+		plugins: plugins.concat(['pdf']),
+		hide: false
+	});
+	settings.location.searchParams.delete('pdf');
 }
 
 async function pdfPlugin(page, settings, req, res) {
-	const defs = {
-		hide: false,
-		stall: 5000,
-		timeout: 5000
-	};
-	for (const key in defs) if (settings[key] == null) settings[key] = defs[key];
-
 	page.addStyleTag({
 		content: `html {
 			-webkit-print-color-adjust: exact !important;
 		}`});
 
+	const { policies, location, preset } = settings;
+
+	if (preset.scale) settings.scale = preset.scale;
+
+	policies.script = "'self' https:";
+	policies.connect = "'self' https:";
+	policies.img = "'self' https: data:";
+	policies.font = "'self' https: data:";
+	policies.style = "'self' 'unsafe-inline' https:";
+
 	page.on('idle', async () => {
 		if (res.statusCode == 200) {
-			settings.output = true; // take over output
+			settings.output = true; // take over output before any other plugin
 		} else {
 			return;
 		}
-		const pdf = settings.pdf || {};
 
-		const title = getSlug(await page.title() ?? settings.location.pathname);
-		const pdfParams = typeof req.query.pdf == "string" ? {} : req.query.pdf;
+		const title = getSlug(await page.title() ?? location.pathname);
 
-		const opts = {
-			...pdf.defaults,
-			...pdfParams
-		};
+		const outputPath = tempfile('.pdf');
 
-		const { mappings } = pdf;
-
-		if (!mappings.paper) mappings.paper = 'format';
-		if (!mappings.ranges) mappings.ranges = 'pageRanges';
-		opts.landscape = opts.orientation == "landscape";
-
-		for (const [key, obj] of Object.entries(pdf.mappings || [])) {
-			if (opts[key] === undefined) continue;
-			if (typeof obj == "string") {
-				opts[obj] = opts[key];
-				delete opts[key];
-			} else {
-				Object.assign(opts, obj[opts[key]] ?? {});
-			}
-		}
-
-		const pdfOpts = {
-			preferCSSPageSize: false,
-			printBackground: true
-		};
-		if (typeof opts.margin == "string") opts.margin = {
-			left: opts.margin, right: opts.margin,
-			top: opts.margin, bottom: opts.margin
-		};
-		for (const prop of ['format', 'margin', 'landscape', 'pageRanges']) {
-			if (opts[prop] != null) pdfOpts[prop] = opts[prop];
-			delete opts[prop];
-		}
-
-		let withGs = 0;
-		// the 'default' quality means not using gs at all
-		if (opts.quality && !pdfQualities[opts.quality]) {
-			delete opts.quality;
-		}
-
-		['icc', 'quality'].forEach((prop) => {
-			if (opts[prop] != null) withGs++;
-		});
-
-		debug("getting pdf with title", title, pdfOpts);
+		debug("getting pdf", title, outputPath);
 		res.attachment(title.substring(0, 123) + '.pdf');
 
-		pdfOpts.path = tempfile('.pdf');
+		await page.emulateMedia({ media: 'print' });
+		await page.pdf({
+			preferCSSPageSize: true,
+			printBackground: true,
+			path: outputPath
+		});
 
-		await page.pdf(pdfOpts);
-		debug("pdf ready");
-
-		if (withGs) {
-			settings.output = await ghostscript({
-				path: pdfOpts.path,
-				title,
-				pdfx: pdf.pdfx
-			}, opts);
+		if (preset.quality) {
+			settings.output = await ghostscript(title, outputPath, preset);
 		} else {
-			settings.output = createReadStream(pdfOpts.path);
+			settings.output = createReadStream(outputPath);
 		}
-		once(settings.output, 'end').then(() => unlink(pdfOpts.path));
+		once(settings.output, 'finish').then(() => unlink(outputPath));
 	});
 }
 
-async function ghostscript({ path, title, pdfx }, opts) {
+async function ghostscript(title, path, preset) {
+	const { pdfx, iccdir } = dom.settings.pdf;
+	const { quality, icc, condition } = preset;
 	// http://milan.kupcevic.net/ghostscript-ps-pdf/
 	// ALL OPTIONS http://ghostscript.com/doc/current/Ps2pdf.htm
 	// http://ghostscript.com/doc/current/VectorDevices.htm#PDFWRITE
@@ -145,9 +124,6 @@ async function ghostscript({ path, title, pdfx }, opts) {
 	// ebook: 150 dpi
 	// printer: 300 dpi
 	// prepress: 300 dpi, color preserving
-	// default: almost identical to screen
-	let quality = opts.quality || 'default';
-	if (opts.icc) quality = "printer";
 	const args = [
 		"-q", // do not log to stdout
 		"-sstdout=%stderr", // redirect postscript errors to stderr
@@ -163,14 +139,14 @@ async function ghostscript({ path, title, pdfx }, opts) {
 		"-sDEVICE=pdfwrite",
 		"-sOutputFile=-"
 	];
-	if (opts.icc) {
+	if (icc) {
 		/*
 		 http://www.color.org/chardata/drsection1.xalter
 		 and explanations about ICC, OutputConditionIdentifier is
 		 https://stackoverflow.com/questions/35705099/ghostscript-why-must-i-provide-a-pdfa-def-ps-for-pdf-a-conversion
 		 https://www.ghostscript.com/doc/9.56.1/VectorDevices.htm#PDFX
 		*/
-		const iccpath = Path.join(opts.iccdir, Path.basename(opts.icc));
+		const iccpath = Path.join(iccdir, Path.basename(icc));
 		const pdfxDefPath = tempfile('.ps');
 		if (!pdfxCache.has(pdfx)) {
 			const pdfxBuf = await readFile(pdfx);
@@ -178,8 +154,7 @@ async function ghostscript({ path, title, pdfx }, opts) {
 		}
 		const pdfxData = pdfxCache.get(pdfx)
 			.replace('!ICC!', escapePsString(iccpath))
-			.replace('!OUPUTCONDITION!', escapePsString(opts.outputcondition || opts.icc))
-			.replace('!OUPUTCONDITIONID!', escapePsString(opts.outputconditionid || 'Custom'))
+			.replace('!CONDITION!', escapePsString(condition))
 			.replace('!TITLE!', escapePsString(title));
 
 		await writeFile(pdfxDefPath, pdfxData);
@@ -198,6 +173,9 @@ async function ghostscript({ path, title, pdfx }, opts) {
 	debug("gs", args.join(" "));
 
 	const gs = child_process.spawn('gs', args);
+	if (gs.stdout == null || gs.stderr == null) {
+		throw new Error("Cannot spawn ghostscript command: 'gs'");
+	}
 
 	const errors = [];
 	gs.stderr.on('data', (data) => {

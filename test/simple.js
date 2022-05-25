@@ -1,26 +1,19 @@
 const express = require('express');
 const assert = require('node:assert').strict;
 const { once } = require('node:events');
-const Path = require('node:path');
 const { request } = require('undici');
 
 const dom = require('express-dom');
-const pdf = require('..')(dom);
-pdf.defaults.iccdir = Path.join(__dirname, 'icc');
-pdf.mappings = {
-	x3: {
-		fogra39l: {
-			icc: 'ISOcoated_v2_300_eci.icc',
-			outputcondition: 'Commercial and specialty offset, paper type 1 and 2, gloss or matt coated paper, positive plates, tone value increase curves A (CMY) and B (K), white backing.',
-			outputconditionid: 'FOGRA39L'
-		}
-	}
-};
+const pdf = require('..');
 
-dom.settings.stall = 5000;
-dom.settings.allow = 'all';
-dom.settings.timeout = 10000;
-dom.settings.console = true;
+dom.settings.verbose = true;
+
+pdf.presets.x3 = {
+	quality: 'prepress',
+	scale: 4,
+	icc: 'ISOcoated_v2_300_eci.icc',
+	condition: 'FOGRA39L'
+};
 
 describe("Simple setup", () => {
 	let server, host;
@@ -55,7 +48,7 @@ describe("Simple setup", () => {
 	it("compresses pdf with gs screen quality", async () => {
 		const {
 			statusCode, body
-		} = await request(`${host}/index.html?pdf[quality]=screen&pdf[paper]=a4`);
+		} = await request(`${host}/index.html?pdf=screen`);
 		assert.equal(statusCode, 200);
 		const len = (await body.arrayBuffer()).length;
 		assert.ok(len <= 45000);
@@ -64,18 +57,19 @@ describe("Simple setup", () => {
 	it("compresses high-quality pdf with prepress quality", async () => {
 		const {
 			statusCode, body
-		} = await request(`${host}/index.html?pdf[quality]=prepress`);
+		} = await request(`${host}/index.html?pdf=prepress`);
 		assert.equal(statusCode, 200);
-		const len = (await body.arrayBuffer()).length;
-		assert.ok(len <= 65000);
-		assert.ok(len >= 55000);
+		const buf = await body.arrayBuffer();
+		await require('fs/promises').writeFile('test.pdf', buf);
+		assert.ok(buf.length <= 65000);
+		assert.ok(buf.length >= 55000);
 	});
 
 	it("get a pdf x3 pdf with predefined icc profile", async () => {
 		const {
 			statusCode,
 			// body // TODO check pdf format
-		} = await request(`${host}/index.html?pdf[x3]=fogra39l`);
+		} = await request(`${host}/index.html?pdf=x3`);
 		assert.equal(statusCode, 200);
 	});
 

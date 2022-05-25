@@ -2,99 +2,79 @@
 
 PDF plugin for express-dom
 
-Prerenders html in visible mode, then outputs pdf,
-and optionally use ghostscript to compress the pdf to predefined qualities.
-
-If your ghostscript version supports it, pdf/x-3 output is supported.
+Optionally converts pdf using ghostscript with presets.
 
 ## Usage
 
-This plugin for express-dom can run aside other rendering engines, one just has
-to install the middleware before the one that is actually rendering html.
+See express-dom documentation about how web pages are prerendered.
+
+Requesting `/page.html?pdf` will download a pdf of `/page.html`.
 
 ```js
-const pdf = require('express-dom-pdf');
+const dom = require('express-dom');
+const pdfDefaults = require('express-dom-pdf');
+
 const app = require('express')();
 
-const pdfHelper = pdf({
- // a default value for quality forces gs conversion
- quality: 'screen',
- orientation: 'portrait',
- // a directory containing icc profiles
- iccdir: require('path').join(__dirname, 'icc')
-}, {
- x3: {
-  'fogra39l': {
-   icc: 'ISOcoated_v2_300.icc',
-   outputcondition: 'Commercial and specialty offset, paper type 1 and 2, gloss or matt coated paper, positive plates, tone value increase curves A (CMY) and B (K), white backing.',
-   outputconditionid: 'FOGRA39L'
-  }
- }
-});
-
-// pdf is rendered only if query does have some "pdf" query parameters
-app.get('*', dom(pdf).load());
+app.get('*', dom('pdf').load());
 ```
 
-The pdf query parameters are removed from the page location.
+## Presets
+
+Depends on the value of the `?pdf=<preset>` parameter:
+
+- default: the pdf as produced by browser (without ghostscript conversion)
+- screen, ebook, printer, prepress:
+  [See ghostscript pdf outputs](https://www.ghostscript.com/doc/current/VectorDevices.htm)
+
+With some versions of ghostscript, it is possible to output a pdf/x-3,
+using this kind of preset:
+
+```js
+pdfDefaults.presets.fogra39l = {
+ quality: 'prepress',
+ scale: 4,
+ icc: 'ISOcoated_v2_300.icc',
+ condition: 'FOGRA39L'
+};
+```
+
+[See also pdflib documentation](https://www.pdflib.com/pdf-knowledge-base/pdfx-output-intents/).
 
 ## Options
 
-Browser options:
+Defaults are stored in `dom.settings.pdf`, which is what is returned by the module.
 
-- orientation: portrait, landscape
-- paper: format iso_a3, iso_a4, iso_a5, iso_b5, na_letter, na_executive, na_legal...
-- margin: single value or {top, right, left, bottom} object with css values
+- timeout: max time to wait for page load to finish (default 30000)
+- pdfx: file path for the pdfx postscript template
+- iccdir: dir path for the icc profiles
+- presets: map of presets
+- plugins: load these dom plugins before pdf plugin
 
-Ghostscript options:
+Presets accept these options:
 
-- quality: default, screen, ebook, prepress, printer
-- icc: profile filename found in iccdir
-
-Constant iccdir option:
-
-- `${iccdir}/${icc}` must be an existing file name
-- `${iccdir}/sRGB.icc` must exists, because the default RGB profile is needed for conversion to CMYK.
-
-The `quality` or `icc` parameters triggers ghostscript compression.
-Ghostscript does not need to be installed unless this parameter is used.
-
-## Example queries
-
-> /mypage?pdf
-> /mypage?pdf[orientation]=landscape
-> /mypage?pdf[icc]=ISOcoated_v2_300.icc&pdf[outputcondition]=Commercial%20and%20specialty%20offset&pdf[outputconditionid]=FOGRA39L
-> /mypage?pdf[margin]=2rem&pdf[x3]=fogra39l
+- quality: false (boolean) or screen|ebook|prepress|printer (string)
+- scale: device scale factor (usually integers between 1 and 4)
+- icc: profile file name found in iccdir (required for pdf/x-3)
+- condition: output condition identifier (required for pdf/x-3)
 
 ## Styling
 
-Set document width to a known value:
+Page size and margin must be configured at the stylesheet level, e.g:
 
 ```css
-html {
-  width: calc((21cm - 3cm) * 2); /* double the printable area width */
+@media only print {
+
+ @page {
+  size: a4 portrait;
+  margin:0;
+ }
+ body {
+  width:21mm;
+ }
+ body > .page {
+   height: 29.7mm;
+   page-break: avoid;
+ }
 }
 ```
-
-See [the wiki](https://github.com/kapouer/express-dom-pdf/wiki) for known limitations.
-
-```html
-<link rel="stylesheet" href="style.css" media="print" />
-```
-
-or in a stylesheet, using a media query
-
-```css
-@media print {
-  article {
-    page-break-inside: avoid;
-  }
-}
-```
-
-Read also [page break properties](http://caniuse.com/#feat=css-page-break),
-in particular note that all browsers support these styles quite well:
-
-- page-break-before: auto | always
-- page-break-after: auto | always
-- page-break-inside: auto | avoid
