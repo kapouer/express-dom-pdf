@@ -9,7 +9,7 @@ const {
 	},
 	createReadStream
 } = require('node:fs');
-const child_process = require('node:child_process');
+const { spawn } = require('node:child_process');
 const Path = require('node:path');
 const getSlug = require('speakingurl');
 const dom = require('express-dom');
@@ -177,8 +177,8 @@ async function ghostscript(title, inputPath, preset) {
 
 	debug("gs", args.join(" "));
 
-	const gs = child_process.spawn('gs', args);
-	gs.on('error', cleanTemp);
+	const gs = spawn('gs', args);
+	gs.on('close', cleanTemp);
 	if (gs.stdout == null || gs.stderr == null) {
 		throw new Error("Cannot spawn ghostscript command: 'gs'");
 	}
