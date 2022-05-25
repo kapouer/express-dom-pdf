@@ -43,6 +43,13 @@ dom.settings.pdf = {
 			quality: 'prepress',
 			scale: 4
 		}
+	},
+	policies: {
+		script: "'self' https:",
+		connect: "'self' https:",
+		img: "'self' https: data:",
+		font: "'self' https: data:",
+		style: "'self' 'unsafe-inline' https:"
 	}
 };
 
@@ -77,11 +84,7 @@ async function pdfPlugin(page, settings, req, res) {
 
 	if (preset.scale) settings.scale = preset.scale;
 
-	policies.script = "'self' https:";
-	policies.connect = "'self' https:";
-	policies.img = "'self' https: data:";
-	policies.font = "'self' https: data:";
-	policies.style = "'self' 'unsafe-inline' https:";
+	Object.assign(policies, settings.pdf.policies);
 
 	page.on('idle', async () => {
 		const title = getSlug(await page.title() ?? location.pathname);

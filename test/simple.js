@@ -12,6 +12,7 @@ const { unlink, writeFile } = require('node:fs/promises');
 
 dom.settings.verbose = true;
 
+pdf.policies.script = "'self' 'unsafe-inline' https:";
 pdf.presets.x3 = {
 	quality: 'prepress',
 	scale: 4,
