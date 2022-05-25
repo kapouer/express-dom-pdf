@@ -71,6 +71,20 @@ describe("Simple setup", function () {
 		await assertBox(buf, 216, 279);
 	});
 
+	it("sets page size from css", async () => {
+		const { statusCode, body } = await request(`${host}/page.html?pdf&size=a4`);
+		assert.equal(statusCode, 200);
+		const buf = await body.arrayBuffer();
+		await assertBox(buf, 210, 297);
+	});
+
+	it("sets page orientation from css", async () => {
+		const { statusCode, body } = await request(`${host}/page.html?pdf&size=a4&orientation=landscape`);
+		assert.equal(statusCode, 200);
+		const buf = await body.arrayBuffer();
+		await assertBox(buf, 297, 210);
+	});
+
 	it("compresses pdf with gs screen quality", async () => {
 		const {
 			statusCode, body

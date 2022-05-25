@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>resizable page</title>
+	<script>
+		function setup() {
+			const params = new URL(document.location).searchParams;
+			const size = params.get('size') ?? 'letter';
+			const orientation = params.get('orientation') ?? 'portrait';
+			document.querySelector('.size').textContent = size;
+			document.querySelector('.orientation').textContent = orientation;
+			const sheet = document.styleSheets[0];
+			sheet.insertRule(`@page {
+				size: ${size} ${orientation};
+				margin:0;
+			}`, 0);
+		}
+		if (document.readyState != "loading") setup();
+		else document.addEventListener('DOMContentLoaded', setup);
+	</script>
+	<style>
+		body {
+			background: yellow;
+		}
+	</style>
+</head>
+
+<body>
+	HTML page size is <div class="size"></div> <div class="orientation"></div>
+</body>
+
+</html>

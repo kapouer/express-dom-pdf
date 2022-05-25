@@ -49,6 +49,7 @@ Defaults are stored in `dom.settings.pdf`, which is what is returned by the modu
 - iccdir: dir path for the icc profiles
 - presets: map of presets
 - plugins: load these dom plugins before pdf plugin
+- policies: the csp that overwrites express-dom load policies
 
 Presets accept these options:
 
