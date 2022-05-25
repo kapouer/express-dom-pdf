@@ -27,8 +27,7 @@ Depends on the value of the `?pdf=<preset>` parameter:
 - screen, ebook, printer, prepress:
   [See ghostscript pdf outputs](https://www.ghostscript.com/doc/current/VectorDevices.htm)
 
-With some versions of ghostscript, it is possible to output a pdf/x-3,
-using this kind of preset:
+Ghostscript can produce a pdf/x-3 using this kind of preset:
 
 ```js
 pdfDefaults.presets.fogra39l = {
