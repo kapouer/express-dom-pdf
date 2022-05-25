@@ -132,9 +132,6 @@ async function ghostscript(title, inputPath, preset) {
 		// "-dNOSAFER", // or else absolute paths cannot be specified
 		// "-dNOOUTERSAVE",
 		// "-dCompatibilityLevel=1.4",
-		// "-dFirstPage=" + opts.first,
-		// "-dLastPage=" + opts.last,
-		// "-dNumRenderingThreads=4",
 		"-dPDFSETTINGS=/" + quality,
 		"-sDEVICE=pdfwrite",
 		"-sOutputFile=-"
@@ -172,7 +169,6 @@ async function ghostscript(title, inputPath, preset) {
 			'-dPDFX=true',
 			'-dRenderIntent=3',
 			'-sColorConversionStrategy=CMYK',
-			'-sOutputICCProfile=' + iccpath,
 			pdfxDefPath
 		);
 	}
