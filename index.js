@@ -129,7 +129,7 @@ async function ghostscript(title, inputPath, preset) {
 		"-sstdout=%stderr", // redirect postscript errors to stderr
 		"-dBATCH",
 		"-dNOPAUSE",
-		// "-dNOSAFER", // or else absolute paths cannot be specified
+		"-dNOSAFER", // else absolute paths cannot be specified
 		// "-dNOOUTERSAVE",
 		// "-dCompatibilityLevel=1.4",
 		"-dPDFSETTINGS=/" + quality,
