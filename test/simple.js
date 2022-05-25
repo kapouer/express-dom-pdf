@@ -15,7 +15,8 @@ pdf.presets.x3 = {
 	condition: 'FOGRA39L'
 };
 
-describe("Simple setup", () => {
+describe("Simple setup", function () {
+	this.timeout(10000);
 	let server, host;
 
 	before(async () => {
@@ -67,10 +68,11 @@ describe("Simple setup", () => {
 
 	it("get a pdf x3 pdf with predefined icc profile", async () => {
 		const {
-			statusCode,
-			// body // TODO check pdf format
+			statusCode, body
 		} = await request(`${host}/index.html?pdf=x3`);
 		assert.equal(statusCode, 200);
+		const buf = await body.arrayBuffer();
+		assert.ok(buf.length >= 1500000);
 	});
 
 });
