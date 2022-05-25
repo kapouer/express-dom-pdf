@@ -113,7 +113,7 @@ async function pdfPlugin(page, settings, req, res) {
 	});
 }
 
-async function ghostscript(title, path, preset) {
+async function ghostscript(title, inputPath, preset) {
 	const { pdfx, iccdir } = dom.settings.pdf;
 	const { quality, icc, condition } = preset;
 	// http://milan.kupcevic.net/ghostscript-ps-pdf/
@@ -139,6 +139,15 @@ async function ghostscript(title, path, preset) {
 		"-sDEVICE=pdfwrite",
 		"-sOutputFile=-"
 	];
+
+	let pdfxDefPath;
+	async function cleanTemp() {
+		const it = pdfxDefPath;
+		if (it) {
+			pdfxDefPath = null;
+			await unlink(it);
+		}
+	}
 	if (icc) {
 		/*
 		 http://www.color.org/chardata/drsection1.xalter
@@ -147,7 +156,7 @@ async function ghostscript(title, path, preset) {
 		 https://www.ghostscript.com/doc/9.56.1/VectorDevices.htm#PDFX
 		*/
 		const iccpath = Path.join(iccdir, Path.basename(icc));
-		const pdfxDefPath = tempfile('.ps');
+		pdfxDefPath = tempfile('.ps');
 		if (!pdfxCache.has(pdfx)) {
 			const pdfxBuf = await readFile(pdfx);
 			pdfxCache.set(pdfx, pdfxBuf.toString());
@@ -168,11 +177,12 @@ async function ghostscript(title, path, preset) {
 		);
 	}
 
-	args.push(path);
+	args.push(inputPath);
 
 	debug("gs", args.join(" "));
 
 	const gs = child_process.spawn('gs', args);
+	gs.on('error', cleanTemp);
 	if (gs.stdout == null || gs.stderr == null) {
 		throw new Error("Cannot spawn ghostscript command: 'gs'");
 	}
@@ -182,6 +192,7 @@ async function ghostscript(title, path, preset) {
 		errors.push(data.toString());
 	});
 	gs.on('exit', (code) => {
+		cleanTemp();
 		if (code !== 0 && errors.length) {
 			gs.stdout.emit('error', new Error(errors.join('')));
 		}
