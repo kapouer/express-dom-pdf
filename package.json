@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "description": "PDF plugin for express-dom",
   "main": "index.js",
+  "engines": {
+    "node": ">=16"
+  },
   "keywords": [
     "pdf",
     "prerender",
