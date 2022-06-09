@@ -48,7 +48,10 @@ describe("Simple setup", function () {
 		app.set('views', __dirname + '/public');
 		const staticMw = express.static(app.get('views'));
 		app.get(/\.(json|js|css|png|jpg)$/, staticMw);
-		app.get(/\.html$/, dom(pdf()), staticMw);
+		app.get(/\.html$/, dom(pdf()), staticMw, (err, req, res, next) => {
+			if (err) console.error(err);
+			res.sendStatus(500);
+		});
 
 		server = app.listen();
 		await once(server, 'listening');
