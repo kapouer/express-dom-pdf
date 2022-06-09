@@ -10,7 +10,7 @@ const dom = require('express-dom');
 const pdf = require('..');
 const { unlink, writeFile } = require('node:fs/promises');
 
-dom.settings.verbose = true;
+dom.defaults.console = true;
 
 pdf.policies.script = "'self' 'unsafe-inline' https:";
 pdf.presets.x3 = {
@@ -40,14 +40,15 @@ async function assertBox(buf, width, height) {
 }
 
 describe("Simple setup", function () {
-	this.timeout(10000);
+	this.timeout(15000);
 	let server, host;
 
 	before(async () => {
 		const app = express();
 		app.set('views', __dirname + '/public');
-		app.get(/\.(json|js|css|png|jpg)$/, express.static(app.get('views')));
-		app.get(/\.html$/, dom('pdf').load());
+		const staticMw = express.static(app.get('views'));
+		app.get(/\.(json|js|css|png|jpg)$/, staticMw);
+		app.get(/\.html$/, dom(pdf()), staticMw);
 
 		server = app.listen();
 		await once(server, 'listening');
