@@ -16,7 +16,9 @@ const pdf = require('express-dom-pdf');
 const express = require('express');
 const app = express();
 
-app.get('*.html', dom(pdf()), express.static('public/'));
+app.get('*.html', dom(pdf({
+  plugins: ['custom'] // these plugins are added before 'pdf' plugin
+})), express.static('public/'));
 ```
 
 ## Presets
@@ -42,7 +44,7 @@ pdf.presets.fogra39l = {
 
 ## Options
 
-These settings can be changed globally:
+These settings can be changed globally, or for each instance.
 
 - timeout: max time to wait for page load to finish (default 30000)
 - pdfx: file path for the pdfx postscript template
