@@ -53,6 +53,6 @@
     "exit": true
   },
   "peerDependencies": {
-    "express-dom": "^6.0.0"
+    "express-dom": "^7.0.0"
   }
 }
