@@ -3,7 +3,10 @@ const PdfHandler = require('./lib/handler');
 module.exports = new Proxy(PdfHandler, {
 	apply: (target, thisArg, args) => {
 		const h = new PdfHandler(...args);
-		h.chain.router = phase => h.router(phase);
+		h.chain.router = phase => {
+			h.router(phase);
+			return h.chain;
+		};
 		return h.chain;
 	},
 	get(...args) {
