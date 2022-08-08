@@ -7,18 +7,23 @@ const exec = promisify(require('node:child_process').exec);
 const tempfile = require('tempfile');
 
 const dom = require('express-dom');
-const pdf = require('..');
+const pdf = require('..')({
+	policies: {
+		script: "'self' 'unsafe-inline' https:"
+	},
+	presets: {
+		x3: {
+			quality: 'prepress',
+			scale: 4,
+			icc: 'ISOcoated_v2_300_eci.icc',
+			condition: 'FOGRA39L'
+		}
+	}
+});
 const { unlink, writeFile } = require('node:fs/promises');
 
 dom.defaults.console = true;
-
-pdf.policies.script = "'self' 'unsafe-inline' https:";
-pdf.presets.x3 = {
-	quality: 'prepress',
-	scale: 4,
-	icc: 'ISOcoated_v2_300_eci.icc',
-	condition: 'FOGRA39L'
-};
+dom.debug = require('node:inspector').url() !== undefined;
 
 
 async function getBox(pdfFile) {
@@ -48,7 +53,7 @@ describe("Simple setup", function () {
 		app.set('views', __dirname + '/public');
 		const staticMw = express.static(app.get('views'));
 		app.get(/\.(json|js|css|png|jpg)$/, staticMw);
-		app.get(/\.html$/, dom(pdf()), staticMw, (err, req, res, next) => {
+		app.get(/\.html$/, dom().route(pdf.router), staticMw, (err, req, res, next) => {
 			if (err) console.error(err);
 			res.sendStatus(500);
 		});

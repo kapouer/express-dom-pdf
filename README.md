@@ -12,13 +12,19 @@ Requesting `/page.html?pdf` will download a pdf of `/page.html`.
 
 ```js
 const dom = require('express-dom');
-const pdf = require('express-dom-pdf');
+const pdf = require('express-dom-pdf')({
+  presets: {
+    // merged with pdf.presets
+  },
+  policies: {
+    // merged with pdf.policies
+  }
+  plugins: ['custom'] // these plugins are added before 'pdf' plugin
+});
 const express = require('express');
 const app = express();
 
-app.get('*.html', dom(pdf({
-  plugins: ['custom'] // these plugins are added before 'pdf' plugin
-})), express.static('public/'));
+app.get('*.html', dom().route(pdf.router), express.static('public/'));
 ```
 
 ## Presets
