@@ -41,7 +41,7 @@ Ghostscript can produce a pdf/x-3 using this kind of preset:
 pdf.presets.fogra39l = {
  quality: 'prepress',
  scale: 4,
- icc: 'ISOcoated_v2_300.icc',
+ icc: 'ISOcoated_v2_300_eci.icc',
  condition: 'FOGRA39L'
 };
 ```
@@ -54,7 +54,8 @@ These settings can be changed globally, or for each instance.
 
 - timeout: max time to wait for page load to finish (default 30000)
 - pdfx: file path for the pdfx postscript template
-- iccdir: dir path for the icc profiles
+- iccdir: dir path for the icc profiles (icc-profiles debian package installs
+  /usr/share/color/icc)
 - presets: map of presets
 - plugins: load these dom plugins before pdf plugin
 - policies: the csp for express-dom online phase
