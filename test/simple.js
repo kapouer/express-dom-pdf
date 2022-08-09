@@ -56,8 +56,8 @@ describe("Simple setup", function () {
 		})).route((phase, req) => {
 			phase.settings.preset = req.query.pdf;
 		}), staticMw, (err, req, res, next) => {
-			if (err) console.error(err);
-			res.sendStatus(500);
+			res.status(err.statusCode ?? 500);
+			res.send(err.message);
 		});
 
 		server = app.listen();
@@ -71,7 +71,7 @@ describe("Simple setup", function () {
 	});
 
 	it("gets pdf without gs", async () => {
-		const { statusCode, body, headers } = await request(`${host}/index.html?pdf`);
+		const { statusCode, body, headers } = await request(`${host}/index.html`);
 		assert.equal(statusCode, 200);
 		assert.equal(
 			headers['content-disposition'],
@@ -84,17 +84,23 @@ describe("Simple setup", function () {
 	});
 
 	it("sets page size from css", async () => {
-		const { statusCode, body } = await request(`${host}/page.html?pdf&size=a4`);
+		const { statusCode, body } = await request(`${host}/page.html?size=a4`);
 		assert.equal(statusCode, 200);
 		const buf = await body.arrayBuffer();
 		await assertBox(buf, 210, 297);
 	});
 
 	it("sets page orientation from css", async () => {
-		const { statusCode, body } = await request(`${host}/page.html?pdf&size=a4&orientation=landscape`);
+		const { statusCode, body } = await request(`${host}/page.html?size=a4&orientation=landscape`);
 		assert.equal(statusCode, 200);
 		const buf = await body.arrayBuffer();
 		await assertBox(buf, 297, 210);
+	});
+
+	it("rejects bad preset value", async () => {
+		const { statusCode, body } = await request(`${host}/page.html?pdf=toto`);
+		assert.equal(statusCode, 400);
+		assert.equal(await body.text(), "Unknown preset: toto");
 	});
 
 	it("compresses pdf with gs screen quality", async () => {

@@ -24,12 +24,16 @@ app.get('*.html', dom(pdf({
     // merged with pdf.policies
   }
   plugins: ['custom'] // these plugins are added before 'pdf' plugin
-})), express.static('public/'));
+})).route((phase, req) => {
+  phase.settings.preset = req.query.pdf;
+}), express.static('public/'));
 ```
 
 ## Presets
 
-Depends on the value of the `?pdf=<preset>` parameter:
+Depends on the value of the `phase.settings.preset` parameter.
+If not set, the "default" preset is used.
+If a preset is unknown, an error with error.statusCode of 400 is thrown.
 
 - default: the pdf as produced by browser (without ghostscript conversion)
 - screen, ebook, printer, prepress:
