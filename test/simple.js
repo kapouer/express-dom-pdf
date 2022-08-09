@@ -53,7 +53,9 @@ describe("Simple setup", function () {
 					condition: 'FOGRA39L'
 				}
 			}
-		})), staticMw, (err, req, res, next) => {
+		})).route((phase, req) => {
+			phase.settings.preset = req.query.pdf;
+		}), staticMw, (err, req, res, next) => {
 			if (err) console.error(err);
 			res.sendStatus(500);
 		});
