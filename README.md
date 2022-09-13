@@ -8,13 +8,13 @@ Optionally converts pdf using ghostscript with presets.
 
 See express-dom documentation about how web pages are prerendered.
 
-Requesting `/page.html?pdf` will download a pdf of `/page.html`.
-
 ```js
 const dom = require('express-dom');
 const pdf = require('express-dom-pdf');
 const express = require('express');
 const app = express();
+
+// unconditionally outputs a pdf
 
 app.get('*.html', dom(pdf({
   presets: {
