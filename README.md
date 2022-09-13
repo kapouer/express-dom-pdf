@@ -67,7 +67,7 @@ These settings can be changed globally, or for each instance.
 Presets accept these options:
 
 - quality: false (boolean) or screen|ebook|prepress|printer (string)
-- scale: device scale factor (usually integers between 1 and 4)
+- scale: device scale factor, changes value of window.devicePixelRatio
 - icc: profile file name found in iccdir (required for pdf/x-3)
 - condition: output condition identifier (required for pdf/x-3)
 
