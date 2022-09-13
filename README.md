@@ -79,7 +79,7 @@ Page size and margin must be configured at the stylesheet level, e.g:
 @media only print {
 
  @page {
-  size: a4 portrait;
+  size: A4 portrait;
   margin:0;
  }
  body {
