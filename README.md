@@ -63,6 +63,7 @@ These settings can be changed globally, or for each instance.
 - presets: map of presets
 - plugins: load these dom plugins before pdf plugin
 - policies: the csp for express-dom online phase
+- autobreak: breaks the DOM into pages (experimental, default false)
 
 Presets accept these options:
 
