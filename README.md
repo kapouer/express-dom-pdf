@@ -63,7 +63,7 @@ These settings can be changed globally, or for each instance.
 - presets: map of presets
 - plugins: load these dom plugins before pdf plugin
 - policies: the csp for express-dom online phase
-- autobreak: breaks the DOM into pages (experimental, default false)
+- autobreak: options or null, see below
 
 Presets accept these options:
 
@@ -80,15 +80,32 @@ Page size and margin must be configured at the stylesheet level, e.g:
 @media only print {
 
  @page {
-  size: A4 portrait;
-  margin:0;
+  size: 210mm 297mm;
+  margin:1cm;
  }
- body {
-  width:21mm;
+ html, body {
+  padding: 0;
+  margin: 0;
  }
  body > .page {
-   height: 29.7mm;
-   page-break: avoid;
+   height: 100vh;
+   page-break-inside: avoid;
+   page-break-after: always;
  }
 }
 ```
+
+## Autobreak
+
+This option splits DOM nodes that are styled in `@media print` with:
+
+```css
+page-break-after: always;
+page-break-inside: avoid;
+```
+
+For this option to work, `@page { size: $width $height; }` must be specified, and not `size: $paper $orientation;`.
+
+settings.autobreak accepts true, false, null, or an object with options:
+
+- class: adds a class to the split nodes
