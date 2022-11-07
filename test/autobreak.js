@@ -83,7 +83,7 @@ describe("Autobreak", function () {
 		await dom.destroy();
 	});
 
-	it("breaks into seven pages", async () => {
+	it("breaks into eight pages", async () => {
 		this.timeout(dom.debug ? 0 : 15000);
 		if (dom.debug) {
 			console.info(`${host}/autobreak.html`);
@@ -97,7 +97,7 @@ describe("Autobreak", function () {
 			'attachment; filename="autobreak.pdf"'
 		);
 		const buf = await body.arrayBuffer();
-		await assertPages(buf, 7);
+		await assertPages(buf, 8);
 	});
 
 	it("does not break the unbreakable", async function() {
@@ -114,7 +114,7 @@ describe("Autobreak", function () {
 			'attachment; filename="autobreak-leaf.pdf"'
 		);
 		const buf = await body.arrayBuffer();
-		await fs.writeFile('./autobreak.pdf', buf);
+		// await fs.writeFile('./autobreak.pdf', buf);
 		await assertPages(buf, 2);
 	});
 
