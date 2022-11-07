@@ -95,6 +95,6 @@ A minimal stylesheet:
 
 ## Autobreak
 
-Sample code of how to break pages at the DOM level, before printing, is available in test/public/autobreak.html.
+Sample code of how to break pages at the DOM level, before printing, is available in test/public/autobreak.html (to actually see the result, just serve test/public and open autobreak.html).
 
-This is more powerful than print breaks, because it allows one to style the resulting layout, after the break.
+This is more powerful than print breaks, because it allows one to style the resulting layout.
