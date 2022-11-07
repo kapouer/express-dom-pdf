@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<script src="autobreak.js"></script>
+	<script>
+		const autobreakOpts = {
+			sibling: 'page-next'
+		};
+		const lsn = () => autobreakFn(autobreakOpts);
+		if (document.readyState != "complete") {
+			window.addEventListener('load', lsn);
+		} else {
+			lsn();
+		}
+	</script>
+	<link href="autobreak.css" rel="stylesheet">
+	<style>
+		.page {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			page-break-inside: avoid;
+			page-break-after: always;
+		}
+
+		.top {
+			flex: initial;
+			background: violet;
+		}
+
+		.content {
+			flex: 1 1 auto;
+			font-size: 2em;
+			overflow: hidden;
+		}
+
+		.picture {
+			text-align:center;
+		}
+		.picture > img {
+			width:100%;
+			aspect-ratio: 1/2;
+		}
+
+	</style>
+</head>
+
+<body>
+	<div class="page">
+		<div class="top">TEST TOP RIGHT</div>
+		<div class="content">
+			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in placerat eros, ultrices varius sapien.
+				Aliquam pellentesque pulvinar lectus. Maecenas rutrum vulputate ornare. Vestibulum interdum congue lacinia. Ut
+				id congue urna. Proin sodales varius elit. Integer cursus, leo eu placerat pharetra, enim augue iaculis ex, vel
+				placerat turpis nibh pellentesque mi. Pellentesque dignissim eros nec suscipit vestibulum. Morbi leo ipsum,
+				elementum et tincidunt non, varius vitae est. Donec feugiat ultricies mattis. Donec accumsan fermentum leo, eget
+				posuere justo molestie vitae. Cras pretium metus eu felis aliquet, et convallis dolor egestas. Etiam
+				sollicitudin massa lorem, id iaculis mauris porttitor et. Quisque eleifend tempor tristique. Vivamus ac enim
+				nisl.
+			</p>
+			<div class="picture">
+				<img src="./observable-universe.png">
+			</div>
+		</div>
+	</div>
+</body>
+</html>

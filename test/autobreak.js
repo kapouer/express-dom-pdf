@@ -5,47 +5,61 @@ const { request } = require('undici');
 const { promisify } = require('util');
 const exec = promisify(require('node:child_process').exec);
 const tempfile = require('tempfile');
+const fs = require('node:fs/promises');
 
 const dom = require('express-dom');
 const pdf = require('..');
 const { unlink, writeFile } = require('node:fs/promises');
 
-dom.defaults.console = true;
-dom.debug = require('node:inspector').url() !== undefined;
+dom.defaults.log = true;
 
-
-async function getBox(pdfFile) {
-	const bbox = await exec(`gs -dQUIET -dNOSAFER -dBATCH -sFileName=${pdfFile} -c "FileName (r) file runpdfbegin 1 1 pdfpagecount {pdfgetpage /MediaBox get {=print ( ) print} forall (\n) print} for quit"`);
-	const [x, y, w, h] = bbox.stdout.trim().split(' ').map(x => Math.round(x * 0.35277778));
-	return { x, y, w, h };
+async function getPages(pdfFile) {
+	const cmd = await exec(`gs -dQUIET -dNOSAFER -dBATCH -sFileName=${pdfFile} -c "FileName (r) file runpdfbegin 1 1 pdfpagecount = quit"`);
+	return parseInt(cmd.stdout.trim());
 }
 
-async function assertBox(buf, width, height) {
+async function assertPages(buf, count) {
 	const pdfFile = tempfile(".pdf");
 	await writeFile(pdfFile, buf);
 	try {
-		const { w, h } = await getBox(pdfFile);
-		assert.equal(w, width, `bad paper width ${w}`);
-		assert.equal(h, height, `bad paper height ${h}`);
+		assert.equal(await getPages(pdfFile), count);
 	} finally {
 		await unlink(pdfFile);
 	}
 }
 
 describe("Autobreak", function () {
-	this.timeout(15000);
 	let server, host;
 
 	before(async () => {
 		const app = express();
+		dom.debug = require('node:inspector').url() !== undefined;
+		dom.debug = false;
 		app.set('views', __dirname + '/public');
 		const staticMw = express.static(app.get('views'));
 		app.get(/\.(json|js|css|png|jpg)$/, staticMw);
-		app.get(/\.html$/, dom(pdf({
+		app.get('/autobreak.html', dom.debug ? (req, res, next) => next() : dom(pdf({
 			policies: {
 				script: "'self' 'unsafe-inline' https:"
 			},
-			autobreak: true,
+			presets: {
+				x3: {
+					quality: 'prepress',
+					scale: 4,
+					icc: 'ISOcoated_v2_300_eci.icc',
+					condition: 'FOGRA39L'
+				}
+			}
+		})), staticMw, (err, req, res, next) => {
+			console.error(err);
+			res.status(err.statusCode ?? 500);
+			res.send(err.message);
+		});
+
+		app.get('/autobreak-leaf.html', dom.debug ? (req, res, next) => next() : dom(pdf({
+			policies: {
+				script: "'self' 'unsafe-inline' https:"
+			},
 			presets: {
 				x3: {
 					quality: 'prepress',
@@ -69,7 +83,13 @@ describe("Autobreak", function () {
 		await dom.destroy();
 	});
 
-	it("test", async () => {
+	it("breaks into seven pages", async () => {
+		this.timeout(dom.debug ? 0 : 15000);
+		if (dom.debug) {
+			console.info(`${host}/autobreak.html`);
+			return new Promise(resolve => { });
+		}
+
 		const { statusCode, body, headers } = await request(`${host}/autobreak.html`);
 		assert.equal(statusCode, 200);
 		assert.equal(
@@ -77,8 +97,25 @@ describe("Autobreak", function () {
 			'attachment; filename="autobreak.pdf"'
 		);
 		const buf = await body.arrayBuffer();
-		await require('node:fs/promises').writeFile('autobreak.pdf', buf);
-		await assertBox(buf, 210, 297);
+		await assertPages(buf, 7);
+	});
+
+	it("does not break the unbreakable", async function() {
+		this.timeout(dom.debug ? 0 : 15000);
+		if (dom.debug) {
+			console.info(`${host}/autobreak-leaf.html`);
+			return new Promise(resolve => { });
+		}
+
+		const { statusCode, body, headers } = await request(`${host}/autobreak-leaf.html`);
+		assert.equal(statusCode, 200);
+		assert.equal(
+			headers['content-disposition'],
+			'attachment; filename="autobreak-leaf.pdf"'
+		);
+		const buf = await body.arrayBuffer();
+		await fs.writeFile('./autobreak.pdf', buf);
+		await assertPages(buf, 2);
 	});
 
 });

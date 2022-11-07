@@ -61,9 +61,8 @@ These settings can be changed globally, or for each instance.
 - iccdir: dir path for the icc profiles (icc-profiles debian package installs
   /usr/share/color/icc)
 - presets: map of presets
-- plugins: load these dom plugins before pdf plugin
+- plugins: load these dom plugins before media and pdf plugins
 - policies: the csp for express-dom online phase
-- autobreak: options or null, see below
 
 Presets accept these options:
 
@@ -74,7 +73,7 @@ Presets accept these options:
 
 ## Styling
 
-Page size and margin must be configured at the stylesheet level, e.g:
+A minimal stylesheet:
 
 ```css
 @media only print {
@@ -88,24 +87,14 @@ Page size and margin must be configured at the stylesheet level, e.g:
   margin: 0;
  }
  body > .page {
-   height: 100vh;
-   page-break-inside: avoid;
-   page-break-after: always;
+  page-break-inside: avoid;
+  page-break-after: always;
  }
 }
 ```
 
 ## Autobreak
 
-This option splits DOM nodes that are styled in `@media print` with:
+Sample code of how to break pages at the DOM level, before printing, is available in test/public/autobreak.html.
 
-```css
-page-break-after: always;
-page-break-inside: avoid;
-```
-
-For this option to work, `@page { size: $width $height; }` must be specified, and not `size: $paper $orientation;`.
-
-settings.autobreak accepts true, false, null, or an object with options:
-
-- class: adds a class to the split nodes
+This is more powerful than print breaks, because it allows one to style the resulting layout, after the break.

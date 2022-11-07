@@ -1,0 +1,7 @@
+@media print {
+	@page {
+		margin: 0.5in;
+		/* dimensions are needed for autobreak.js */
+		size: 210mm 297mm;
+	}
+}
