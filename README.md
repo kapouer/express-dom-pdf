@@ -43,10 +43,11 @@ Ghostscript can produce a pdf/x-3 using this kind of preset:
 
 ```js
 pdf.presets.fogra39l = {
- quality: 'prepress',
+ quality: 'printer',
  scale: 4,
  icc: 'ISOcoated_v2_300_eci.icc',
- condition: 'FOGRA39L'
+ condition: 'FOGRA39L',
+ others: [ "-dColorImageResolution=600" ]
 };
 ```
 
@@ -70,6 +71,7 @@ Presets accept these options:
 - scale: device scale factor, changes value of window.devicePixelRatio
 - icc: profile file name found in iccdir (required for pdf/x-3)
 - condition: output condition identifier (required for pdf/x-3)
+- others: additional gs arguments, see [ghostscript](https://ghostscript.com/docs/9.54.0/VectorDevices.htm).
 
 ## Styling
 

@@ -46,6 +46,13 @@ describe("Simple setup", function () {
 				script: "'self' 'unsafe-inline' https:"
 			},
 			presets: {
+				low: {
+					quality: 'screen',
+					scale: 1,
+					others: [
+						"-dColorImageResolution=32"
+					]
+				},
 				x3: {
 					quality: 'prepress',
 					scale: 4,
@@ -132,6 +139,16 @@ describe("Simple setup", function () {
 		assert.equal(statusCode, 200);
 		const buf = await body.arrayBuffer();
 		assert.ok(buf.length >= 1500000);
+		await assertBox(buf, 216, 279);
+	});
+
+	it("get a preset with very low color resolution", async () => {
+		const {
+			statusCode, body
+		} = await request(`${host}/index.html?pdf=low`);
+		assert.equal(statusCode, 200);
+		const buf = await body.arrayBuffer();
+		assert.ok(buf.length < 31000);
 		await assertBox(buf, 216, 279);
 	});
 
