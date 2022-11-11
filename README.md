@@ -26,6 +26,8 @@ app.get('*.html', dom(pdf({
   plugins: ['custom'] // these plugins are added before 'pdf' plugin
 })).route((phase, req) => {
   phase.settings.preset = req.query.pdf;
+  // no need to keep the parameter during prerendering
+  phase.location.searchParams.delete('pdf');
 }), express.static('public/'));
 ```
 
