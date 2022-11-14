@@ -2,7 +2,9 @@
 <html>
 <head>
 <title>test title</title>
-<script>window.onload = function() {
+<script>
+document.head.querySelector('title').textContent += window.devicePixelRatio;
+window.onload = function() {
 	document.querySelector('div').innerHTML = "test";
 };
 </script>

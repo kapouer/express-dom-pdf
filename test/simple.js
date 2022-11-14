@@ -82,7 +82,7 @@ describe("Simple setup", function () {
 		assert.equal(statusCode, 200);
 		assert.equal(
 			headers['content-disposition'],
-			'attachment; filename="test-title.pdf"'
+			'attachment; filename="test-title1.pdf"'
 		);
 		const buf = await body.arrayBuffer();
 		const len = buf.length;
@@ -134,9 +134,13 @@ describe("Simple setup", function () {
 
 	it("get a pdf x3 pdf with predefined icc profile", async () => {
 		const {
-			statusCode, body
+			statusCode, body, headers
 		} = await request(`${host}/index.html?pdf=x3`);
 		assert.equal(statusCode, 200);
+		assert.equal(
+			headers['content-disposition'],
+			'attachment; filename="test-title4.pdf"'
+		);
 		const buf = await body.arrayBuffer();
 		assert.ok(buf.length >= 2000000);
 		await assertBox(buf, 216, 279);
