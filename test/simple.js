@@ -61,7 +61,7 @@ describe("Simple setup", function () {
 				}
 			}
 		})).route((phase, req) => {
-			phase.settings.preset = req.query.pdf;
+			phase.settings.pdf(req.query.pdf);
 		}), staticMw, (err, req, res, next) => {
 			res.status(err.statusCode ?? 500);
 			res.send(err.message);
@@ -138,7 +138,7 @@ describe("Simple setup", function () {
 		} = await request(`${host}/index.html?pdf=x3`);
 		assert.equal(statusCode, 200);
 		const buf = await body.arrayBuffer();
-		assert.ok(buf.length >= 1500000);
+		assert.ok(buf.length >= 2000000);
 		await assertBox(buf, 216, 279);
 	});
 
