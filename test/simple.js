@@ -60,8 +60,8 @@ describe("Simple setup", function () {
 					condition: 'FOGRA39L'
 				}
 			}
-		})).route((phase, req) => {
-			phase.settings.pdf(req.query.pdf);
+		})).route(({ visible, settings }, req) => {
+			if (visible) settings.pdf(req.query.pdf);
 		}), staticMw, (err, req, res, next) => {
 			res.status(err.statusCode ?? 500);
 			res.send(err.message);
