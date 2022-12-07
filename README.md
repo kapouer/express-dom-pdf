@@ -24,10 +24,14 @@ app.get('*.html', dom(pdf({
     // merged with pdf.policies
   }
   plugins: ['custom'] // these plugins are added before 'pdf' plugin
-})).route((phase, req) => {
-  phase.settings.pdf(req.query.pdf);
-  // no need to keep the parameter during prerendering
-  phase.location.searchParams.delete('pdf');
+})).route((phase, req, res) => {
+  if (phase.visible) {
+    phase.settings.pdf(req.query.pdf);
+    // no need to keep the parameter during prerendering
+    phase.location.searchParams.delete('pdf');
+  } else {
+    res.set('Content-Security-Policy', "default 'self' data:");
+  }
 }), express.static('public/'));
 ```
 
