@@ -15,7 +15,7 @@ dom.defaults.log = true;
 
 async function getPages(pdfFile) {
 	const cmd = await exec(
-		`gs -dQUIET -dNOSAFER -dBATCH -sFileName=${pdfFile} -c "FileName (r) file runpdfbegin 1 1 pdfpagecount = quit"`
+		`gs -dQUIET -dNODISPLAY -dNOSAFER -dBATCH -sFileName=${pdfFile} -c "FileName (r) file runpdfbegin 1 1 pdfpagecount = quit"`
 	);
 	return parseInt(cmd.stdout.trim());
 }
