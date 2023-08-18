@@ -20,6 +20,22 @@ async function getBox(pdfFile) {
 	return { x, y, w, h };
 }
 
+async function getText(pdfFile) {
+	const task = await exec(`gs -sDEVICE=txtwrite -sOutputFile=- -sFONTPATH=/usr/share/fonts -dQUIET -dNOPAUSE -dNOSAFER -dBATCH ${pdfFile}`);
+	return task.stdout.trim();
+}
+
+async function assertText(buf, text) {
+	const pdfFile = tempfile(".pdf");
+	await writeFile(pdfFile, buf);
+	try {
+		const output = await getText(pdfFile);
+		assert.equal(output, text);
+	} finally {
+		await unlink(pdfFile);
+	}
+}
+
 async function assertBox(buf, width, height) {
 	const pdfFile = tempfile(".pdf");
 	await writeFile(pdfFile, buf);
@@ -156,5 +172,13 @@ describe("Simple setup", function () {
 		await assertBox(buf, 216, 279);
 	});
 
+	it("renders text with unicode emojis (experimental not trustworthy)", async () => {
+		const {
+			statusCode, body
+		} = await request(`${host}/unicode.html?pdf=low`);
+		assert.equal(statusCode, 200);
+		const buf = await body.arrayBuffer();
+		await assertText(buf, 'ATA\x84\x83\x86\x8B\x81');
+	});
 });
 
