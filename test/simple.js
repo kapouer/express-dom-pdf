@@ -15,8 +15,8 @@ dom.debug = require('node:inspector').url() !== undefined;
 
 
 async function getBox(pdfFile) {
-	const bbox = await exec(`gs -dQUIET -dNODISPLAY -dNOSAFER -dBATCH -sFileName=${pdfFile} -c "FileName (r) file runpdfbegin 1 1 pdfpagecount {pdfgetpage /MediaBox get {=print ( ) print} forall (\n) print} for quit"`);
-	const [x, y, w, h] = bbox.stdout.trim().split(' ').map(x => Math.round(x * 0.35277778));
+	const task = await exec(`gs -dQUIET -dNOPAUSE -dNODISPLAY -dNOSAFER -dBATCH -sFileName=${pdfFile} -c "FileName (r) file runpdfbegin 1 1 pdfpagecount {pdfgetpage /MediaBox get {=print ( ) print} forall (\n) print} for quit"`);
+	const [x, y, w, h] = task.stdout.trim().split(' ').map(x => Math.round(x * 0.35277778));
 	return { x, y, w, h };
 }
 
