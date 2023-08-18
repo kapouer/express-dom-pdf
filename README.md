@@ -106,3 +106,9 @@ A minimal stylesheet:
 Sample code of how to break pages at the DOM level, before printing, is available in test/public/autobreak.html (to actually see the result, just serve test/public and open autobreak.html).
 
 This is more powerful than print breaks, because it allows one to style the resulting layout.
+
+## fonts
+
+On Debian, it is recommended to install the fonts-recommended package.
+
+System fonts rendering can have some bugs, like emojis not being rendered when font weight is bold.
