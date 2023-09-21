@@ -5,7 +5,6 @@ const { request } = require("undici");
 const { promisify } = require("util");
 const exec = promisify(require("node:child_process").exec);
 const tempfile = require("tempfile");
-const fs = require("node:fs/promises");
 
 const dom = require("express-dom");
 const pdf = require("..");
@@ -46,6 +45,7 @@ describe("Autobreak", function () {
 				? (req, res, next) => next()
 				: dom(
 					pdf({
+						pageCount: true,
 						policies: {
 							script: "'self' 'unsafe-inline' https:",
 						},
@@ -118,6 +118,10 @@ describe("Autobreak", function () {
 			headers["content-disposition"],
 			'attachment; filename="autobreak.pdf"',
 		);
+		assert.equal(
+			headers['x-page-count'],
+			'8'
+		);
 		const buf = await body.arrayBuffer();
 		await assertPages(buf, 8);
 	});
@@ -136,6 +140,10 @@ describe("Autobreak", function () {
 		assert.equal(
 			headers["content-disposition"],
 			'attachment; filename="autobreak-leaf.pdf"',
+		);
+		assert.equal(
+			headers['x-page-count'],
+			undefined
 		);
 		const buf = await body.arrayBuffer();
 		// await fs.writeFile('./autobreak.pdf', buf);

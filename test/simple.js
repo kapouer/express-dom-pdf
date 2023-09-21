@@ -61,6 +61,7 @@ describe("Simple setup", function () {
 			policies: {
 				script: "'self' 'unsafe-inline' https:"
 			},
+			pageCount: true,
 			presets: {
 				low: {
 					quality: 'screen',
@@ -100,6 +101,10 @@ describe("Simple setup", function () {
 			headers['content-disposition'],
 			'attachment; filename="test-title1.pdf"'
 		);
+		assert.equal(
+			headers['x-page-count'],
+			'1'
+		);
 		const buf = await body.arrayBuffer();
 		const len = buf.length;
 		assert.ok(len >= 100000);
@@ -114,8 +119,12 @@ describe("Simple setup", function () {
 	});
 
 	it("sets page orientation from css", async () => {
-		const { statusCode, body } = await request(`${host}/page.html?size=a4&orientation=landscape`);
+		const { statusCode, body, headers } = await request(`${host}/page.html?size=a4&orientation=landscape`);
 		assert.equal(statusCode, 200);
+		assert.equal(
+			headers['x-page-count'],
+			'1'
+		);
 		const buf = await body.arrayBuffer();
 		await assertBox(buf, 297, 210);
 	});
@@ -139,9 +148,13 @@ describe("Simple setup", function () {
 
 	it("compresses high-quality pdf with prepress quality", async () => {
 		const {
-			statusCode, body
+			statusCode, body, headers
 		} = await request(`${host}/index.html?pdf=prepress`);
 		assert.equal(statusCode, 200);
+		assert.equal(
+			headers['x-page-count'],
+			'1'
+		);
 		const buf = await body.arrayBuffer();
 		assert.ok(buf.length <= 65000);
 		assert.ok(buf.length >= 55000);
@@ -157,6 +170,10 @@ describe("Simple setup", function () {
 			headers['content-disposition'],
 			'attachment; filename="test-title4.pdf"'
 		);
+		assert.equal(
+			headers['x-page-count'],
+			'1'
+		);
 		const buf = await body.arrayBuffer();
 		assert.ok(buf.length >= 2000000);
 		await assertBox(buf, 216, 279);
@@ -164,9 +181,13 @@ describe("Simple setup", function () {
 
 	it("get a preset with very low color resolution", async () => {
 		const {
-			statusCode, body
+			statusCode, body, headers
 		} = await request(`${host}/index.html?pdf=low`);
 		assert.equal(statusCode, 200);
+		assert.equal(
+			headers['x-page-count'],
+			'1'
+		);
 		const buf = await body.arrayBuffer();
 		assert.ok(buf.length < 31000);
 		await assertBox(buf, 216, 279);

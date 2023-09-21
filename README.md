@@ -70,6 +70,7 @@ These settings can be changed globally, or for each instance.
 - presets: map of presets
 - plugins: load these dom plugins before media and pdf plugins
 - policies: the csp for express-dom online phase
+- pageCount: enables X-Page-Count response header, exposes page count
 
 Presets accept these options:
 
