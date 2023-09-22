@@ -61,7 +61,6 @@ describe("Simple setup", function () {
 			policies: {
 				script: "'self' 'unsafe-inline' https:"
 			},
-			pageCount: true,
 			presets: {
 				low: {
 					quality: 'screen',
@@ -70,9 +69,15 @@ describe("Simple setup", function () {
 						"-dColorImageResolution=32"
 					]
 				},
+				prepress: {
+					scale: 4,
+					pageCount: true,
+					quality: 'prepress'
+				},
 				x3: {
 					quality: 'prepress',
 					scale: 4,
+					pageCount: true,
 					icc: 'ISOcoated_v2_300_eci.icc',
 					condition: 'FOGRA39L'
 				}
@@ -103,7 +108,7 @@ describe("Simple setup", function () {
 		);
 		assert.equal(
 			headers['x-page-count'],
-			'1'
+			undefined
 		);
 		const buf = await body.arrayBuffer();
 		const len = buf.length;
@@ -123,7 +128,7 @@ describe("Simple setup", function () {
 		assert.equal(statusCode, 200);
 		assert.equal(
 			headers['x-page-count'],
-			'1'
+			undefined
 		);
 		const buf = await body.arrayBuffer();
 		await assertBox(buf, 297, 210);
@@ -186,7 +191,7 @@ describe("Simple setup", function () {
 		assert.equal(statusCode, 200);
 		assert.equal(
 			headers['x-page-count'],
-			'1'
+			undefined
 		);
 		const buf = await body.arrayBuffer();
 		assert.ok(buf.length < 31000);

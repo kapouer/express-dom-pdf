@@ -70,7 +70,6 @@ These settings can be changed globally, or for each instance.
 - presets: map of presets
 - plugins: load these dom plugins before media and pdf plugins
 - policies: the csp for express-dom online phase
-- pageCount: enables X-Page-Count response header, exposes page count
 
 Presets accept these options:
 
@@ -79,6 +78,8 @@ Presets accept these options:
 - icc: profile file name found in iccdir (required for pdf/x-3)
 - condition: output condition identifier (required for pdf/x-3)
 - others: additional gs arguments, see [ghostscript](https://ghostscript.com/docs/9.54.0/VectorDevices.htm).
+- pageCount: boolean, sets X-Page-Count HTTP response header.
+  defaults to true for printer preset.
 
 ## Styling
 

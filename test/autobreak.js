@@ -45,11 +45,14 @@ describe("Autobreak", function () {
 				? (req, res, next) => next()
 				: dom(
 					pdf({
-						pageCount: true,
 						policies: {
 							script: "'self' 'unsafe-inline' https:",
 						},
 						presets: {
+							default: {
+								scale: 1,
+								pageCount: true
+							},
 							x3: {
 								quality: "prepress",
 								scale: 4,
@@ -107,7 +110,7 @@ describe("Autobreak", function () {
 		this.timeout(dom.debug ? 0 : 15000);
 		if (dom.debug) {
 			console.info(`${host}/autobreak.html`);
-			return new Promise((resolve) => {});
+			return new Promise(() => {});
 		}
 
 		const { statusCode, body, headers } = await request(
@@ -130,7 +133,7 @@ describe("Autobreak", function () {
 		this.timeout(dom.debug ? 0 : 15000);
 		if (dom.debug) {
 			console.info(`${host}/autobreak-leaf.html`);
-			return new Promise((resolve) => {});
+			return new Promise(() => {});
 		}
 
 		const { statusCode, body, headers } = await request(
