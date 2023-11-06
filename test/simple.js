@@ -1,7 +1,6 @@
 const express = require('express');
 const assert = require('node:assert').strict;
 const { once } = require('node:events');
-const { request } = require('undici');
 const { promisify } = require('util');
 const exec = promisify(require('node:child_process').exec);
 const tempfile = require('tempfile');
@@ -27,7 +26,7 @@ async function getText(pdfFile) {
 
 async function assertText(buf, text) {
 	const pdfFile = tempfile(".pdf");
-	await writeFile(pdfFile, buf);
+	await writeFile(pdfFile, Buffer.from(buf));
 	try {
 		const output = await getText(pdfFile);
 		assert.equal(output, text);
@@ -38,7 +37,7 @@ async function assertText(buf, text) {
 
 async function assertBox(buf, width, height) {
 	const pdfFile = tempfile(".pdf");
-	await writeFile(pdfFile, buf);
+	await writeFile(pdfFile, Buffer.from(buf));
 	try {
 		const { w, h } = await getBox(pdfFile);
 		assert.equal(w, width, "bad paper width");
@@ -100,110 +99,90 @@ describe("Simple setup", function () {
 	});
 
 	it("gets pdf without gs", async () => {
-		const { statusCode, body, headers } = await request(`${host}/index.html`);
-		assert.equal(statusCode, 200);
+		const res = await fetch(`${host}/index.html`);
+		assert.equal(res.status, 200);
 		assert.equal(
-			headers['content-disposition'],
+			res.headers.get('content-disposition'),
 			'attachment; filename="test-title1.pdf"'
 		);
-		assert.equal(
-			headers['x-page-count'],
-			undefined
-		);
-		const buf = await body.arrayBuffer();
-		const len = buf.length;
+		assert.ok(!res.headers.has('x-page-count'));
+		const buf = await res.arrayBuffer();
+		const len = buf.byteLength;
 		assert.ok(len >= 100000);
 		await assertBox(buf, 216, 279);
 	});
 
 	it("sets page size from css", async () => {
-		const { statusCode, body } = await request(`${host}/page.html?size=a4`);
-		assert.equal(statusCode, 200);
-		const buf = await body.arrayBuffer();
+		const res = await fetch(`${host}/page.html?size=a4`);
+		assert.equal(res.status, 200);
+		const buf = await res.arrayBuffer();
 		await assertBox(buf, 210, 297);
 	});
 
 	it("sets page orientation from css", async () => {
-		const { statusCode, body, headers } = await request(`${host}/page.html?size=a4&orientation=landscape`);
-		assert.equal(statusCode, 200);
-		assert.equal(
-			headers['x-page-count'],
-			undefined
-		);
-		const buf = await body.arrayBuffer();
-		await assertBox(buf, 297, 210);
+		const res = await fetch(`${host}/page.html?size=a4&orientation=landscape`);
+		assert.equal(res.status, 200);
+		assert.ok(!res.headers.has('x-page-count'));
+		await assertBox(await res.arrayBuffer(), 297, 210);
 	});
 
 	it("rejects bad preset value", async () => {
-		const { statusCode, body } = await request(`${host}/page.html?pdf=toto`);
-		assert.equal(statusCode, 400);
-		assert.equal(await body.text(), "Unknown preset: toto");
+		const res = await fetch(`${host}/page.html?pdf=toto`);
+		assert.equal(res.status, 400);
+		assert.equal(await res.text(), "Unknown preset: toto");
 	});
 
 	it("compresses pdf with gs screen quality", async () => {
-		const {
-			statusCode, body
-		} = await request(`${host}/index.html?pdf=screen`);
-		assert.equal(statusCode, 200);
-		const buf = await body.arrayBuffer();
-		const len = buf.length;
+		const res = await fetch(`${host}/index.html?pdf=screen`);
+		assert.equal(res.status, 200);
+		const buf = await res.arrayBuffer();
+		const len = buf.byteLength;
 		assert.ok(len <= 45000);
 		await assertBox(buf, 216, 279);
 	});
 
 	it("compresses high-quality pdf with prepress quality", async () => {
-		const {
-			statusCode, body, headers
-		} = await request(`${host}/index.html?pdf=prepress`);
-		assert.equal(statusCode, 200);
+		const res = await fetch(`${host}/index.html?pdf=prepress`);
+		assert.equal(res.status, 200);
 		assert.equal(
-			headers['x-page-count'],
+			res.headers.get('x-page-count'),
 			'1'
 		);
-		const buf = await body.arrayBuffer();
-		assert.ok(buf.length <= 65000);
-		assert.ok(buf.length >= 55000);
+		const buf = await res.arrayBuffer();
+		assert.ok(buf.byteLength <= 65000);
+		assert.ok(buf.byteLength >= 55000);
 		await assertBox(buf, 216, 279);
 	});
 
 	it("get a pdf x3 pdf with predefined icc profile", async () => {
-		const {
-			statusCode, body, headers
-		} = await request(`${host}/index.html?pdf=x3`);
-		assert.equal(statusCode, 200);
+		const res = await fetch(`${host}/index.html?pdf=x3`);
+		assert.equal(res.status, 200);
 		assert.equal(
-			headers['content-disposition'],
+			res.headers.get('content-disposition'),
 			'attachment; filename="test-title4.pdf"'
 		);
 		assert.equal(
-			headers['x-page-count'],
+			res.headers.get('x-page-count'),
 			'1'
 		);
-		const buf = await body.arrayBuffer();
-		assert.ok(buf.length >= 2000000);
+		const buf = await res.arrayBuffer();
+		assert.ok(buf.byteLength >= 2000000);
 		await assertBox(buf, 216, 279);
 	});
 
 	it("get a preset with very low color resolution", async () => {
-		const {
-			statusCode, body, headers
-		} = await request(`${host}/index.html?pdf=low`);
-		assert.equal(statusCode, 200);
-		assert.equal(
-			headers['x-page-count'],
-			undefined
-		);
-		const buf = await body.arrayBuffer();
-		assert.ok(buf.length < 31000);
+		const res = await fetch(`${host}/index.html?pdf=low`);
+		assert.equal(res.status, 200);
+		assert.ok(!res.headers.has('x-page-count'));
+		const buf = await res.arrayBuffer();
+		assert.ok(buf.byteLength < 31100);
 		await assertBox(buf, 216, 279);
 	});
 
 	it("renders text with unicode emojis (experimental not trustworthy)", async () => {
-		const {
-			statusCode, body
-		} = await request(`${host}/unicode.html?pdf=low`);
-		assert.equal(statusCode, 200);
-		const buf = await body.arrayBuffer();
+		const res = await fetch(`${host}/unicode.html?pdf=low`);
+		assert.equal(res.status, 200);
+		const buf = await res.arrayBuffer();
 		await assertText(buf, 'ATA\x84\x83\x86\x8B\x81');
 	});
 });

@@ -1,7 +1,6 @@
 const express = require("express");
 const assert = require("node:assert").strict;
 const { once } = require("node:events");
-const { request } = require("undici");
 const { promisify } = require("util");
 const exec = promisify(require("node:child_process").exec);
 const tempfile = require("tempfile");
@@ -21,7 +20,7 @@ async function getPages(pdfFile) {
 
 async function assertPages(buf, count) {
 	const pdfFile = tempfile(".pdf");
-	await writeFile(pdfFile, buf);
+	await writeFile(pdfFile, Buffer.from(buf));
 	try {
 		assert.equal(await getPages(pdfFile), count);
 	} finally {
@@ -113,19 +112,19 @@ describe("Autobreak", function () {
 			return new Promise(() => {});
 		}
 
-		const { statusCode, body, headers } = await request(
+		const res = await fetch(
 			`${host}/autobreak.html`,
 		);
-		assert.equal(statusCode, 200);
+		assert.equal(res.status, 200);
 		assert.equal(
-			headers["content-disposition"],
+			res.headers.get("content-disposition"),
 			'attachment; filename="autobreak.pdf"',
 		);
 		assert.equal(
-			headers['x-page-count'],
+			res.headers.get('x-page-count'),
 			'8'
 		);
-		const buf = await body.arrayBuffer();
+		const buf = await res.arrayBuffer();
 		await assertPages(buf, 8);
 	});
 
@@ -136,19 +135,16 @@ describe("Autobreak", function () {
 			return new Promise(() => {});
 		}
 
-		const { statusCode, body, headers } = await request(
+		const res = await fetch(
 			`${host}/autobreak-leaf.html`,
 		);
-		assert.equal(statusCode, 200);
+		assert.equal(res.status, 200);
 		assert.equal(
-			headers["content-disposition"],
+			res.headers.get("content-disposition"),
 			'attachment; filename="autobreak-leaf.pdf"',
 		);
-		assert.equal(
-			headers['x-page-count'],
-			undefined
-		);
-		const buf = await body.arrayBuffer();
+		assert.ok(!res.headers.has('x-page-count'));
+		const buf = await res.arrayBuffer();
 		// await fs.writeFile('./autobreak.pdf', buf);
 		await assertPages(buf, 2);
 	});
