@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "debug": "^4.3.4",
-    "speakingurl": "^14.0.1",
     "tempfile": "^3.0.0"
   },
   "peerDependencies": {
