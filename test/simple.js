@@ -103,7 +103,7 @@ describe("Simple setup", function () {
 		assert.equal(res.status, 200);
 		assert.equal(
 			res.headers.get('content-disposition'),
-			'attachment; filename="test-title1.pdf"'
+			'attachment; filename="test title1.pdf"'
 		);
 		assert.ok(!res.headers.has('x-page-count'));
 		const buf = await res.arrayBuffer();
@@ -159,7 +159,7 @@ describe("Simple setup", function () {
 		assert.equal(res.status, 200);
 		assert.equal(
 			res.headers.get('content-disposition'),
-			'attachment; filename="test-title4.pdf"'
+			'attachment; filename="test title4.pdf"'
 		);
 		assert.equal(
 			res.headers.get('x-page-count'),
