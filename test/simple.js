@@ -68,6 +68,13 @@ describe("Simple setup", function () {
 						"-dColorImageResolution=32"
 					]
 				},
+				gradient: {
+					scale: 1,
+					quality: 'printer',
+					others: [
+						"-sColorConversionStrategy=CMYK"
+					]
+				},
 				prepress: {
 					scale: 4,
 					pageCount: true,
@@ -185,5 +192,14 @@ describe("Simple setup", function () {
 		const buf = await res.arrayBuffer();
 		await assertText(buf, 'ATA\x84\x83\x86\x8B\x81');
 	});
-});
 
+	it("renders correctly gradients with ghostscript", async () => {
+		const res = await fetch(`${host}/gradient.html?pdf=gradient`);
+		assert.equal(res.status, 200);
+		const buf = await res.arrayBuffer();
+		assert.ok(
+			buf.byteLength > 22000,
+			"unconverted gradient takes less bytes"
+		);
+	});
+});
