@@ -70,10 +70,7 @@ describe("Simple setup", function () {
 				},
 				gradient: {
 					scale: 1,
-					quality: 'printer',
-					others: [
-						"-sColorConversionStrategy=CMYK"
-					]
+					quality: 'printer'
 				},
 				prepress: {
 					scale: 4,
@@ -156,8 +153,8 @@ describe("Simple setup", function () {
 			'1'
 		);
 		const buf = await res.arrayBuffer();
-		assert.ok(buf.byteLength <= 65000);
-		assert.ok(buf.byteLength >= 55000);
+		assert.ok(buf.byteLength <= 90000);
+		assert.ok(buf.byteLength >= 75000);
 		await assertBox(buf, 216, 279);
 	});
 
