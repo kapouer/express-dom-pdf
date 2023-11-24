@@ -195,7 +195,7 @@ describe("Simple setup", function () {
 		assert.equal(res.status, 200);
 		const buf = await res.arrayBuffer();
 		assert.ok(
-			buf.byteLength > 22000,
+			buf.byteLength > 80000,
 			"unconverted gradient takes less bytes"
 		);
 	});
