@@ -130,7 +130,7 @@ describe("Simple setup", function () {
 		});
 		assert.equal(res.statusCode, 200);
 		assert.equal(
-			res.headers['Content-Disposition'],
+			res.get('Content-Disposition'),
 			'attachment; filename="test title1.pdf"'
 		);
 		const buf = await arrayBuffer(res);
