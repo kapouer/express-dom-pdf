@@ -35,6 +35,17 @@ app.get('*.html', dom(pdf({
 }), express.static('public/'));
 ```
 
+It is also possible to get a response stream directly without express:
+
+```js
+// here res is a passthrough stream, with additional properties
+// { statusCode, headers }
+const res = dom(pdf(opts))({
+  url: 'http://localhost/custom.html',
+  body: '<html>...</html>'
+});
+```
+
 ## Presets
 
 Depends on the value of the `phase.settings.preset` parameter.
@@ -103,7 +114,7 @@ A minimal stylesheet:
 }
 ```
 
-## Autobreak
+## Autobreak (experimental)
 
 Sample code of how to break pages at the DOM level, before printing, is available in test/public/autobreak.html (to actually see the result, just serve test/public and open autobreak.html).
 
@@ -111,6 +122,6 @@ This is more powerful than print breaks, because it allows one to style the resu
 
 ## fonts
 
-On Debian, it is recommended to install the fonts-recommended package.
+On Debian, install "fonts-recommended" package.
 
-System fonts rendering can have some bugs, like emojis not being rendered when font weight is bold.
+System fonts rendering can have some bugs, especially regarding emojis or color fonts.
