@@ -7,7 +7,10 @@ const tempfile = require('tempfile');
 
 const dom = require('express-dom');
 const pdf = require('..');
-const { unlink, writeFile } = require('node:fs/promises');
+
+const { arrayBuffer } = require('node:stream/consumers');
+const { createWriteStream } = require('node:fs');
+const { unlink, writeFile, readFile } = require('node:fs/promises');
 
 dom.defaults.console = true;
 dom.debug = require('node:inspector').url() !== undefined;
@@ -47,6 +50,38 @@ async function assertBox(buf, width, height) {
 	}
 }
 
+
+const domConfig = pdf({
+	policies: {
+		script: "'self' 'unsafe-inline' https:"
+	},
+	presets: {
+		low: {
+			quality: 'screen',
+			scale: 1,
+			others: [
+				"-dColorImageResolution=32"
+			]
+		},
+		gradient: {
+			scale: 1,
+			quality: 'printer'
+		},
+		prepress: {
+			scale: 4,
+			pageCount: true,
+			quality: 'prepress'
+		},
+		x3: {
+			quality: 'prepress',
+			scale: 4,
+			pageCount: true,
+			icc: 'ISOcoated_v2_300_eci.icc',
+			condition: 'FOGRA39L'
+		}
+	}
+});
+
 describe("Simple setup", function () {
 	this.timeout(15000);
 	let server, host;
@@ -56,36 +91,7 @@ describe("Simple setup", function () {
 		app.set('views', __dirname + '/public');
 		const staticMw = express.static(app.get('views'));
 		app.get(/\.(json|js|css|png|jpg)$/, staticMw);
-		app.get(/\.html$/, dom(pdf({
-			policies: {
-				script: "'self' 'unsafe-inline' https:"
-			},
-			presets: {
-				low: {
-					quality: 'screen',
-					scale: 1,
-					others: [
-						"-dColorImageResolution=32"
-					]
-				},
-				gradient: {
-					scale: 1,
-					quality: 'printer'
-				},
-				prepress: {
-					scale: 4,
-					pageCount: true,
-					quality: 'prepress'
-				},
-				x3: {
-					quality: 'prepress',
-					scale: 4,
-					pageCount: true,
-					icc: 'ISOcoated_v2_300_eci.icc',
-					condition: 'FOGRA39L'
-				}
-			}
-		})).route(({ visible, settings }, req) => {
+		app.get(/\.html$/, dom(domConfig).route(({ visible, settings }, req) => {
 			if (visible) settings.pdf(req.query.pdf);
 		}), staticMw, (err, req, res, next) => {
 			res.status(err.statusCode ?? 500);
@@ -111,6 +117,23 @@ describe("Simple setup", function () {
 		);
 		assert.ok(!res.headers.has('x-page-count'));
 		const buf = await res.arrayBuffer();
+		const len = buf.byteLength;
+		assert.ok(len >= 100000);
+		await assertBox(buf, 216, 279);
+	});
+
+	it("gets pdf without gs manually", async () => {
+		// in that case, we want to stream directly to a file
+		const res = await dom(domConfig)({
+			url: host + '/toto.html',
+			body: await readFile(__dirname + '/public/index.html'),
+		});
+		assert.equal(res.statusCode, 200);
+		assert.equal(
+			res.headers['Content-Disposition'],
+			'attachment; filename="test title1.pdf"'
+		);
+		const buf = await arrayBuffer(res);
 		const len = buf.byteLength;
 		assert.ok(len >= 100000);
 		await assertBox(buf, 216, 279);
