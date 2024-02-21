@@ -35,11 +35,11 @@ app.get('*.html', dom(pdf({
 }), express.static('public/'));
 ```
 
-It is also possible to get a response stream directly without express:
+It is also possible to get a response stream directly without express,
+in scenarios where pdf generation takes a long time:
 
 ```js
-// here res is a passthrough stream, with additional properties
-// { statusCode, headers }
+// res: { statusCode, headers } is a passthrough stream
 const res = dom(pdf(opts))({
   url: 'http://localhost/custom.html',
   body: '<html>...</html>'
