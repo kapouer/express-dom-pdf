@@ -76,7 +76,7 @@ const domConfig = pdf({
 			quality: 'prepress',
 			scale: 4,
 			pageCount: true,
-			icc: 'ISOcoated_v2_300_eci.icc',
+			icc: 'colord/FOGRA39L_coated.icc',
 			condition: 'FOGRA39L'
 		}
 	}
@@ -193,8 +193,9 @@ describe("Simple setup", function () {
 			'1'
 		);
 		const buf = await res.arrayBuffer();
-		assert.ok(buf.byteLength >= 2000000);
 		await assertBox(buf, 216, 279);
+		assert.ok(buf.byteLength >= 700000);
+
 	});
 
 	it("get a preset with very low color resolution", async () => {

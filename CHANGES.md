@@ -14,3 +14,6 @@ Disable inline images in pdf.
 
 Allow generation of pdf from manual calls (since express-dom 8.11).
 
+## 8.12.0
+
+icc can now accept a relative path to iccdir.

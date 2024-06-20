@@ -86,7 +86,7 @@ Presets accept these options:
 
 - quality: false (boolean) or screen|ebook|prepress|printer (string)
 - scale: device scale factor, changes value of window.devicePixelRatio
-- icc: profile file name found in iccdir (required for pdf/x-3)
+- icc: relative file path found in iccdir (required for pdf/x-3)
 - condition: output condition identifier (required for pdf/x-3)
 - others: additional gs arguments, see [ghostscript](https://ghostscript.com/docs/9.54.0/VectorDevices.htm).
 - pageCount: boolean, sets X-Page-Count HTTP response header.
