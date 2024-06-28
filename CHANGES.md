@@ -17,3 +17,7 @@ Allow generation of pdf from manual calls (since express-dom 8.11).
 ## 8.12.0
 
 icc can now accept a relative path to iccdir.
+
+## 8.12.1
+
+Throw an error after document.fonts.ready times out (10 seconds).
