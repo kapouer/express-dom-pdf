@@ -201,7 +201,7 @@ describe("Simple setup", function () {
 	it("get a preset with very low color resolution", async () => {
 		const res = await fetch(`${host}/index.html?pdf=low`);
 		assert.equal(res.status, 200);
-		assert.ok(!res.headers.has('x-page-count'));
+		assert.ok(res.headers.has('x-page-count'));
 		const buf = await res.arrayBuffer();
 		assert.ok(buf.byteLength < 31100);
 		await assertBox(buf, 216, 279);
