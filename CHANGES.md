@@ -1,5 +1,9 @@
 # CHANGES
 
+## 8.14.0
+
+Parallel processing of PDF is opt-in, using the new "parallel" option.
+
 ## 8.13.0
 
 When using ghostview, divide the PDF to process pages in parallel,

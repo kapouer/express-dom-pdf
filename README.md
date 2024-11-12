@@ -75,6 +75,7 @@ pdf.presets.fogra39l = {
 These settings can be changed globally, or for each instance.
 
 - timeout: max time to wait for page load to finish (default 30000)
+- parallel: number of parts to process pdf in parallel (default 1, experimental)
 - pdfx: file path for the pdfx postscript template
 - iccdir: dir path for the icc profiles (icc-profiles debian package installs
   /usr/share/color/icc)
