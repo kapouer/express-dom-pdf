@@ -32,12 +32,12 @@
     "tempfile": "^3.0.0"
   },
   "peerDependencies": {
-    "express-dom": "^8.14.0"
+    "express-dom": "^8.14.1"
   },
   "devDependencies": {
     "@kapouer/eslint-config": "^2.0.0",
     "express": "4.21.1",
-    "express-dom": "^8.14.0",
+    "express-dom": "^8.14.1",
     "mocha": "^10.8.2"
   },
   "eslintConfig": {
