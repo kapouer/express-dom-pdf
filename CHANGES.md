@@ -1,5 +1,11 @@
 # CHANGES
 
+## 9.0.0
+
+Add support for pdf/a-2b.
+
+Breaking change: pdfx options is a boolean, not a file path.
+
 ## 8.14.0
 
 Parallel processing of PDF is opt-in, using the new "parallel" option.
