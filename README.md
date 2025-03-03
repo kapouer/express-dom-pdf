@@ -71,7 +71,7 @@ pdf.presets.fogra39l = {
 
 [See also pdflib documentation](https://www.pdflib.com/pdf-knowledge-base/pdfx-output-intents/).
 
-For pdf/a-2 output, a icc profile may be specified (defaults to default_cmyk.icc).
+For pdf/a-2 output, a icc profile may be specified.
 
 ## Options
 
@@ -90,8 +90,9 @@ Presets accept these options:
 - scale: device scale factor, changes value of window.devicePixelRatio
 - pdfa: boolean
 - pdfx: boolean
-- icc: relative file path found in iccdir (required for pdf/a-2 or pdf/x-3)
-- condition: output condition identifier (required for pdf/x-3)
+- icc: profile path relative to iccdir (for pdfa, pdfx)
+  defaults to `ghostscript/default_cmyk.icc`
+- condition: output condition identifier (for pdfa, pdfx, can be left empty)
   See [Registered CMYK characterization data sets](https://www.color.org/chardata/drsection1.xalter).
 - others: additional gs arguments, see [ghostscript](https://ghostscript.readthedocs.io/en/latest/VectorDevices.html).
 - pageCount: boolean, sets X-Page-Count HTTP response header.
