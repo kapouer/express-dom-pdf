@@ -101,6 +101,7 @@ describe("Simple setup", function () {
 		app.get(/\.html$/, dom(domConfig).route(({ visible, settings }, req) => {
 			if (visible) settings.pdf(req.query.pdf);
 		}), staticMw, (err, req, res, next) => {
+			console.error(err);
 			res.status(err.statusCode ?? 500);
 			res.send(err.message);
 		});
