@@ -76,8 +76,15 @@ const domConfig = pdf({
 			quality: 'prepress',
 			scale: 4,
 			pageCount: true,
+			pdfx: true,
 			icc: 'colord/FOGRA39L_coated.icc',
 			condition: 'FOGRA39L'
+		},
+		a2: {
+			quality: 'prepress',
+			scale: 4,
+			pageCount: true,
+			pdfa: true
 		}
 	}
 });
@@ -181,7 +188,7 @@ describe("Simple setup", function () {
 		await assertBox(buf, 216, 279);
 	});
 
-	it("get a pdf x3 pdf with predefined icc profile", async () => {
+	it("get a pdf/x3 with predefined icc profile", async () => {
 		const res = await fetch(`${host}/index.html?pdf=x3`);
 		assert.equal(res.status, 200);
 		assert.equal(
@@ -195,7 +202,24 @@ describe("Simple setup", function () {
 		const buf = await res.arrayBuffer();
 		await assertBox(buf, 216, 279);
 		assert.ok(buf.byteLength >= 700000);
+	});
 
+	it("get a pdf/a2 without icc profile", async () => {
+		const res = await fetch(`${host}/index.html?pdf=a2`);
+		assert.equal(res.status, 200);
+		assert.equal(
+			res.headers.get('content-disposition'),
+			'attachment; filename="test title4.pdf"'
+		);
+		assert.equal(
+			res.headers.get('x-page-count'),
+			'1'
+		);
+		const buf = await res.arrayBuffer();
+		await assertBox(buf, 216, 279);
+		await writeFile("test-a2.pdf", Buffer.from(buf));
+		assert.ok(buf.byteLength >= 220000);
+		assert.ok(buf.byteLength < 300000);
 	});
 
 	it("get a preset with very low color resolution", async () => {
