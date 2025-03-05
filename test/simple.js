@@ -3,7 +3,6 @@ const assert = require('node:assert').strict;
 const { once } = require('node:events');
 const { promisify } = require('util');
 const exec = promisify(require('node:child_process').exec);
-const tempfile = require('tempfile');
 
 const dom = require('express-dom');
 const pdf = require('..');
@@ -11,6 +10,7 @@ const pdf = require('..');
 const { arrayBuffer } = require('node:stream/consumers');
 const { createWriteStream } = require('node:fs');
 const { unlink, writeFile, readFile } = require('node:fs/promises');
+const tmp = require('tmp');
 
 dom.defaults.console = true;
 dom.debug = require('node:inspector').url() !== undefined;
@@ -28,7 +28,7 @@ async function getText(pdfFile) {
 }
 
 async function assertText(buf, text) {
-	const pdfFile = tempfile(".pdf");
+	const pdfFile = tmp.tmpNameSync({ postfix: 'test.pdf' });
 	await writeFile(pdfFile, Buffer.from(buf));
 	try {
 		const output = await getText(pdfFile);
@@ -39,7 +39,7 @@ async function assertText(buf, text) {
 }
 
 async function assertBox(buf, width, height) {
-	const pdfFile = tempfile(".pdf");
+	const pdfFile = tmp.tmpNameSync({ postfix: 'test.pdf' });
 	await writeFile(pdfFile, Buffer.from(buf));
 	try {
 		const { w, h } = await getBox(pdfFile);

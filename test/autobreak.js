@@ -3,11 +3,11 @@ const assert = require("node:assert").strict;
 const { once } = require("node:events");
 const { promisify } = require("util");
 const exec = promisify(require("node:child_process").exec);
-const tempfile = require("tempfile");
 
 const dom = require("express-dom");
 const pdf = require("..");
 const { unlink, writeFile } = require("node:fs/promises");
+const tmp = require('tmp');
 
 dom.defaults.log = true;
 
@@ -19,7 +19,7 @@ async function getPages(pdfFile) {
 }
 
 async function assertPages(buf, count) {
-	const pdfFile = tempfile(".pdf");
+	const pdfFile = tmp.tmpNameSync({ postfix: 'test.pdf' });
 	await writeFile(pdfFile, Buffer.from(buf));
 	try {
 		assert.equal(await getPages(pdfFile), count);

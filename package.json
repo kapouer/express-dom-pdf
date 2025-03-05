@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "debug": "^4.3.7",
-    "tempfile": "^3.0.0"
+    "tmp": "^0.2.3"
   },
   "peerDependencies": {
     "express-dom": "^8.14.1"
