@@ -2,7 +2,12 @@
 
 ## 9.0.0
 
-Add support for pdf/a-2b.
+- Enable "-dPassThroughJPEGImages=true" for non-display devices.
+  This avoids reencoding artifacts, and faster generation.
+- Keep RGB for ColorConversionStrategy (except for pdf/x).
+- Fix escaping of postscript strings.
+- Add support for pdf/a-2b (pdfa option).
+- Drop NOSAFER, use adhoc `--permit-file-read` instead.
 
 Breaking change: pdfx options is a boolean, not a file path.
 
