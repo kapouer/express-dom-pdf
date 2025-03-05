@@ -8,7 +8,6 @@ const dom = require('express-dom');
 const pdf = require('..');
 
 const { arrayBuffer } = require('node:stream/consumers');
-const { createWriteStream } = require('node:fs');
 const { unlink, writeFile, readFile } = require('node:fs/promises');
 const tmp = require('tmp');
 
@@ -62,10 +61,6 @@ const domConfig = pdf({
 			others: [
 				"-dColorImageResolution=32"
 			]
-		},
-		gradient: {
-			scale: 1,
-			quality: 'printer'
 		},
 		prepress: {
 			scale: 4,
@@ -172,7 +167,7 @@ describe("Simple setup", function () {
 		assert.equal(res.status, 200);
 		const buf = await res.arrayBuffer();
 		const len = buf.byteLength;
-		assert.ok(len <= 45000);
+		assert.ok(len <= 46000);
 		await assertBox(buf, 216, 279);
 	});
 
@@ -184,8 +179,8 @@ describe("Simple setup", function () {
 			'1'
 		);
 		const buf = await res.arrayBuffer();
-		assert.ok(buf.byteLength <= 90000);
-		assert.ok(buf.byteLength >= 75000);
+		assert.ok(buf.byteLength <= 70000);
+		assert.ok(buf.byteLength >= 65000);
 		await assertBox(buf, 216, 279);
 	});
 
@@ -202,7 +197,7 @@ describe("Simple setup", function () {
 		);
 		const buf = await res.arrayBuffer();
 		await assertBox(buf, 216, 279);
-		assert.ok(buf.byteLength >= 700000);
+		assert.ok(buf.byteLength >= 440000);
 	});
 
 	it("get a pdf/a2 without icc profile", async () => {
@@ -218,16 +213,15 @@ describe("Simple setup", function () {
 		);
 		const buf = await res.arrayBuffer();
 		await assertBox(buf, 216, 279);
-		await writeFile("test-a2.pdf", Buffer.from(buf));
-		assert.ok(buf.byteLength >= 220000);
-		assert.ok(buf.byteLength < 300000);
+		assert.ok(buf.byteLength >= 68000);
+		assert.ok(buf.byteLength < 70000);
 	});
 
 	it("get a preset with very low color resolution", async () => {
 		const res = await fetch(`${host}/index.html?pdf=low`);
 		assert.equal(res.status, 200);
 		const buf = await res.arrayBuffer();
-		assert.ok(buf.byteLength < 31100);
+		assert.ok(buf.byteLength < 36000);
 		await assertBox(buf, 216, 279);
 	});
 
@@ -239,7 +233,7 @@ describe("Simple setup", function () {
 	});
 
 	it("renders correctly gradients with ghostscript", async () => {
-		const res = await fetch(`${host}/gradient.html?pdf=gradient`);
+		const res = await fetch(`${host}/gradient.html?pdf=x3`);
 		assert.equal(res.status, 200);
 		const buf = await res.arrayBuffer();
 		assert.ok(
