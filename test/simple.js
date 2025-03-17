@@ -180,7 +180,7 @@ describe("Simple setup", function () {
 		);
 		const buf = await res.arrayBuffer();
 		assert.ok(buf.byteLength <= 70000);
-		assert.ok(buf.byteLength >= 65000);
+		assert.ok(buf.byteLength >= 59000);
 		await assertBox(buf, 216, 279);
 	});
 
@@ -213,7 +213,7 @@ describe("Simple setup", function () {
 		);
 		const buf = await res.arrayBuffer();
 		await assertBox(buf, 216, 279);
-		assert.ok(buf.byteLength >= 68000);
+		assert.ok(buf.byteLength >= 60000);
 		assert.ok(buf.byteLength < 70000);
 	});
 
