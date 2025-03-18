@@ -1,5 +1,10 @@
 # CHANGES
 
+## 9.1.0
+
+Since PDF does not accept webp or avif, override HTTP request headers
+so that images are only in svg, png, or jpg.
+
 ## 9.0.0
 
 - Enable "-dPassThroughJPEGImages=true" for non-display devices.
