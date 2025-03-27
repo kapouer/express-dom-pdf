@@ -5,7 +5,8 @@
   "main": "index.js",
   "files": [
     "/lib",
-    "/PDFX_def.ps"
+    "/PDFX_def.ps",
+    "/PDFA_def.ps"
   ],
   "engines": {
     "node": ">=18"
