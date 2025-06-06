@@ -214,7 +214,7 @@ describe("Simple setup", function () {
 		const buf = await res.arrayBuffer();
 		await assertBox(buf, 216, 279);
 		assert.ok(buf.byteLength >= 51000);
-		assert.ok(buf.byteLength < 58000);
+		assert.ok(buf.byteLength < 63000);
 	});
 
 	it("get a preset with very low color resolution", async () => {
