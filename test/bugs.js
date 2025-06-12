@@ -12,7 +12,7 @@ const domConfig = pdf({
 	},
 	presets: {
 		printer: {
-			scale: 4,
+			devicePixelRatio: 4,
 			pageCount: true,
 			quality: 'printer'
 		}
@@ -72,7 +72,7 @@ describe("Bugs", function () {
 		await new Promise(resolve => {
 			process.on("unhandledRejection", () => unhandled = true);
 			setTimeout(resolve, 1500);
-		})
+		});
 		assert.ok(!unhandled);
 	});
 

@@ -49,12 +49,12 @@ describe("Autobreak", function () {
 						},
 						presets: {
 							default: {
-								scale: 1,
+								devicePixelRatio: 1,
 								pageCount: true
 							},
 							x3: {
 								quality: "prepress",
-								scale: 4,
+								devicePixelRatio: 4,
 								icc: "ISOcoated_v2_300_eci.icc",
 								condition: "FOGRA39L",
 							},
@@ -81,7 +81,7 @@ describe("Autobreak", function () {
 						presets: {
 							x3: {
 								quality: "prepress",
-								scale: 4,
+								devicePixelRatio: 4,
 								icc: "ISOcoated_v2_300_eci.icc",
 								condition: "FOGRA39L",
 							},

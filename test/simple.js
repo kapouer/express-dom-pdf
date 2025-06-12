@@ -57,29 +57,33 @@ const domConfig = pdf({
 	presets: {
 		low: {
 			quality: 'screen',
-			scale: 1,
+			devicePixelRatio: 1,
+			format: 'a4',
 			others: [
 				"-dColorImageResolution=32"
 			]
 		},
 		prepress: {
-			scale: 4,
+			devicePixelRatio: 4,
 			pageCount: true,
-			quality: 'prepress'
+			quality: 'prepress',
+			format: 'a4'
 		},
 		x3: {
 			quality: 'prepress',
-			scale: 4,
+			devicePixelRatio: 4,
 			pageCount: true,
 			pdfx: true,
 			icc: 'colord/FOGRA39L_coated.icc',
-			condition: 'FOGRA39L'
+			condition: 'FOGRA39L',
+			format: 'a4'
 		},
 		a2: {
 			quality: 'prepress',
-			scale: 4,
+			devicePixelRatio: 4,
 			pageCount: true,
-			pdfa: true
+			pdfa: true,
+			format: 'a4'
 		}
 	}
 });
@@ -94,7 +98,10 @@ describe("Simple setup", function () {
 		const staticMw = express.static(app.get('views'));
 		app.get(/\.(json|js|css|png|jpg)$/, staticMw);
 		app.get(/\.html$/, dom(domConfig).route(({ visible, settings }, req) => {
-			if (visible) settings.pdf(req.query.pdf);
+			if (visible) {
+				settings.browser = req.query.browser;
+				settings.pdf(req.query.pdf);
+			}
 		}), staticMw, (err, req, res, next) => {
 			console.error(err);
 			res.status(err.statusCode ?? 500);
@@ -122,7 +129,21 @@ describe("Simple setup", function () {
 		const buf = await res.arrayBuffer();
 		const len = buf.byteLength;
 		assert.ok(len >= 100000);
-		await assertBox(buf, 216, 279);
+		await assertBox(buf, 210, 297);
+	});
+
+	it("gets pdf without gs on firefox", async () => {
+		const res = await fetch(`${host}/index.html?browser=firefox`);
+		assert.equal(res.status, 200);
+		assert.equal(
+			res.headers.get('content-disposition'),
+			'attachment; filename="Test écrit1.pdf"'
+		);
+		assert.ok(!res.headers.has('x-page-count'));
+		const buf = await res.arrayBuffer();
+		const len = buf.byteLength;
+		assert.ok(len >= 100000);
+		await assertBox(buf, 210, 297);
 	});
 
 	it("gets pdf without gs manually", async () => {
@@ -139,11 +160,11 @@ describe("Simple setup", function () {
 		const buf = await arrayBuffer(res);
 		const len = buf.byteLength;
 		assert.ok(len >= 100000);
-		await assertBox(buf, 216, 279);
+		await assertBox(buf, 210, 297);
 	});
 
 	it("sets page size from css", async () => {
-		const res = await fetch(`${host}/page.html?size=a4`);
+		const res = await fetch(`${host}/page.html?size=a4&browser=firefox`);
 		assert.equal(res.status, 200);
 		const buf = await res.arrayBuffer();
 		await assertBox(buf, 210, 297);
@@ -168,7 +189,7 @@ describe("Simple setup", function () {
 		const buf = await res.arrayBuffer();
 		const len = buf.byteLength;
 		assert.ok(len <= 46000);
-		await assertBox(buf, 216, 279);
+		await assertBox(buf, 210, 297);
 	});
 
 	it("compresses high-quality pdf with prepress quality", async () => {
@@ -181,7 +202,7 @@ describe("Simple setup", function () {
 		const buf = await res.arrayBuffer();
 		assert.ok(buf.byteLength <= 60000);
 		assert.ok(buf.byteLength >= 50000);
-		await assertBox(buf, 216, 279);
+		await assertBox(buf, 210, 297);
 	});
 
 	it("get a pdf/x3 with predefined icc profile", async () => {
@@ -189,31 +210,53 @@ describe("Simple setup", function () {
 		assert.equal(res.status, 200);
 		assert.equal(
 			res.headers.get('content-disposition'),
-			'attachment; filename="Test écrit4.pdf"'
+			'attachment; filename="Test écrit4.pdf"',
+			'Check devicePixelRatio to be 4'
 		);
 		assert.equal(
 			res.headers.get('x-page-count'),
 			'1'
 		);
 		const buf = await res.arrayBuffer();
-		await assertBox(buf, 216, 279);
+		await assertBox(buf, 210, 297);
 		assert.ok(buf.byteLength >= 440000);
 	});
 
-	it("get a pdf/a2 without icc profile", async () => {
+	it("get a pdf/a2 with chrome", async () => {
 		const res = await fetch(`${host}/index.html?pdf=a2`);
 		assert.equal(res.status, 200);
 		assert.equal(
 			res.headers.get('content-disposition'),
 			'attachment; filename="Test écrit4.pdf"'
 		);
+
+		const buf = await res.arrayBuffer();
+		await assertBox(buf, 210, 297);
 		assert.equal(
 			res.headers.get('x-page-count'),
-			'1'
+			'1',
+			'page count should be one'
 		);
+		assert.ok(buf.byteLength >= 50000);
+		assert.ok(buf.byteLength < 63000);
+	});
+
+	it("get a pdf/a2 with firefox", async () => {
+		const res = await fetch(`${host}/index.html?pdf=a2&browser=firefox`);
+		assert.equal(res.status, 200);
+		assert.equal(
+			res.headers.get('content-disposition'),
+			'attachment; filename="Test écrit4.pdf"'
+		);
+
 		const buf = await res.arrayBuffer();
-		await assertBox(buf, 216, 279);
-		assert.ok(buf.byteLength >= 51000);
+		await assertBox(buf, 210, 297);
+		assert.equal(
+			res.headers.get('x-page-count'),
+			'1',
+			'page count should be one'
+		);
+		assert.ok(buf.byteLength >= 50000);
 		assert.ok(buf.byteLength < 63000);
 	});
 
@@ -222,7 +265,7 @@ describe("Simple setup", function () {
 		assert.equal(res.status, 200);
 		const buf = await res.arrayBuffer();
 		assert.ok(buf.byteLength < 36000);
-		await assertBox(buf, 216, 279);
+		await assertBox(buf, 210, 297);
 	});
 
 	it("renders text with unicode emojis (experimental not trustworthy)", async () => {

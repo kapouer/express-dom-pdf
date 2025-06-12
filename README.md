@@ -61,7 +61,7 @@ Ghostscript can produce a pdf/x-3 using this kind of preset:
 ```js
 pdf.presets.fogra39l = {
  quality: 'printer',
- scale: 4,
+ devicePixelRatio: 4,
  pdfx: true,
  icc: 'ISOcoated_v2_300_eci.icc',
  condition: 'FOGRA39L',
@@ -87,7 +87,8 @@ These settings can be changed globally, or for each instance.
 Presets accept these options:
 
 - quality: false (boolean) or screen|ebook|prepress|printer (string)
-- scale: device scale factor, changes value of window.devicePixelRatio
+- devicePixelRatio: changes value of window.devicePixelRatio
+- browser: which browser to use, see express-dom browser option
 - pdfa: boolean
 - pdfx: boolean
 - icc: profile path relative to iccdir (for pdfa, pdfx)

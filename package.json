@@ -1,6 +1,6 @@
 {
   "name": "express-dom-pdf",
-  "version": "9.3.0",
+  "version": "10.0.0",
   "description": "PDF plugin for express-dom",
   "main": "index.js",
   "files": [
@@ -33,13 +33,13 @@
     "tmp": "^0.2.3"
   },
   "peerDependencies": {
-    "express-dom": "^8.16.0"
+    "express-dom": "^9.0.0"
   },
   "devDependencies": {
     "@kapouer/eslint-config": "^2.1.1",
     "express": "5.1.0",
-    "express-dom": "^8.16.0",
-    "mocha": "^11.5.0"
+    "express-dom": "^9.0.0",
+    "mocha": "^11.6.0"
   },
   "eslintConfig": {
     "extends": "@kapouer/eslint-config",
