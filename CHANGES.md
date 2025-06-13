@@ -1,5 +1,14 @@
 # CHANGES
 
+## 10.0.0
+
+Switch to express-dom 9, using puppeteer.
+
+The scale parameter is renamed "devicePixelRatio".
+
+An additional preset parameter is available: "format" (a page size name),
+though it is still encouraged to define the page size using CSS.
+
 ## 9.1.0
 
 Since PDF does not accept webp or avif, override HTTP request headers
