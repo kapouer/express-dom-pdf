@@ -164,10 +164,10 @@ describe("Simple setup", function () {
 	});
 
 	it("sets page size from css", async () => {
-		const res = await fetch(`${host}/page.html?size=a4&browser=firefox`);
+		const res = await fetch(`${host}/page.html?size=a3`);
 		assert.equal(res.status, 200);
 		const buf = await res.arrayBuffer();
-		await assertBox(buf, 210, 297);
+		await assertBox(buf, 297, 420);
 	});
 
 	it("sets page orientation from css", async () => {

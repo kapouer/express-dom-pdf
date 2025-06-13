@@ -29,12 +29,13 @@ describe("Bugs", function () {
 		const staticMw = express.static(app.get('views'));
 		app.get(/\.(json|js|css|png|jpg)$/, staticMw);
 		app.get(/\.html$/, dom(domConfig).route((phase, req) => {
-			const { visible, settings } = phase;
+			const { visible, settings, plugins } = phase;
 			if (visible) {
 				settings.plugins.delete('pdf');
 				settings.plugins.add('isitdone');
 				settings.plugins.add('pdf');
-				phase.handler.plugins.isitdone = (page, settings, req, res) => {
+
+				plugins.isitdone = (page, settings, req, res) => {
 					page.on('idle', () => {
 						res.on('pipe', () => {
 							res.destroy();
