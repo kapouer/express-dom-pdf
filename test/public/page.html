@@ -6,6 +6,8 @@
 	<script>
 		function setup() {
 			const params = new URL(document.location).searchParams;
+			const title = params.get('title') ?? 'title';
+			document.title = title;
 			const size = params.get('size') ?? 'letter';
 			const orientation = params.get('orientation') ?? 'portrait';
 			document.querySelector('.size').textContent = size;

@@ -170,6 +170,11 @@ describe("Simple setup", function () {
 		await assertBox(buf, 297, 420);
 	});
 
+	it("doesn't fail with odd characters in title", async () => {
+		const res = await fetch(`${host}/page.html?pdf=prepress&title=withparens)~|{}_%5C%2F.-,^[@<>%3D]%2B%3F%3A%3B%60`);
+		assert.equal(res.status, 200);
+	});
+
 	it("sets page orientation from css", async () => {
 		const res = await fetch(`${host}/page.html?size=a4&orientation=landscape`);
 		assert.equal(res.status, 200);
