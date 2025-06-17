@@ -205,8 +205,8 @@ describe("Simple setup", function () {
 			'1'
 		);
 		const buf = await res.arrayBuffer();
-		assert.ok(buf.byteLength <= 60000);
-		assert.ok(buf.byteLength >= 50000);
+		assert.ok(buf.byteLength <= 65000);
+		assert.ok(buf.byteLength >= 55000);
 		await assertBox(buf, 210, 297);
 	});
 
@@ -242,8 +242,8 @@ describe("Simple setup", function () {
 			'1',
 			'page count should be one'
 		);
-		assert.ok(buf.byteLength >= 50000);
-		assert.ok(buf.byteLength < 63000);
+		assert.ok(buf.byteLength >= 60000);
+		assert.ok(buf.byteLength < 70000);
 	});
 
 	it("get a pdf/a2 with firefox", async () => {
@@ -262,7 +262,7 @@ describe("Simple setup", function () {
 			'page count should be one'
 		);
 		assert.ok(buf.byteLength >= 50000);
-		assert.ok(buf.byteLength < 63000);
+		assert.ok(buf.byteLength < 60000);
 	});
 
 	it("get a preset with very low color resolution", async () => {
