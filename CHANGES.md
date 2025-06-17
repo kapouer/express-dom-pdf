@@ -4,10 +4,13 @@
 
 Switch to express-dom 9, using puppeteer.
 
-The scale parameter is renamed "devicePixelRatio".
+The "scale" parameter is renamed "devicePixelRatio".
 
-An additional preset parameter is available: "format" (a page size name),
-though it is still encouraged to define the page size using CSS.
+New parameters for presets:
+
+- browser (as in express-dom 9)
+- format (a page size name, though it's better to use @page css)
+- compatibilityLevel (the pdf version, defaults to 1.7)
 
 ## 9.1.0
 

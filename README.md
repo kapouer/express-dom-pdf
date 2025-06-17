@@ -88,6 +88,8 @@ Presets accept these options:
 
 - quality: false (boolean) or screen|ebook|prepress|printer (string)
 - devicePixelRatio: changes value of window.devicePixelRatio
+- compatibilityLevel: "1.3", "1.5", "1.7"
+- format: "a4", "a3", "letter", ...
 - browser: which browser to use, see express-dom browser option
 - pdfa: boolean
 - pdfx: boolean
