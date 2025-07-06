@@ -33,13 +33,13 @@
     "tmp": "^0.2.3"
   },
   "peerDependencies": {
-    "express-dom": "^9.0.0"
+    "express-dom": "^9.0.3"
   },
   "devDependencies": {
     "@kapouer/eslint-config": "^2.1.1",
     "express": "5.1.0",
-    "express-dom": "^9.0.0",
-    "mocha": "^11.6.0"
+    "express-dom": "^9.0.3",
+    "mocha": "^11.7.1"
   },
   "eslintConfig": {
     "extends": "@kapouer/eslint-config",
