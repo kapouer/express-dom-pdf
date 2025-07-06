@@ -63,6 +63,10 @@ const domConfig = pdf({
 				"-dColorImageResolution=32"
 			]
 		},
+		ff: {
+			pageCount: true,
+			devicePixelRatio: 1
+		},
 		prepress: {
 			devicePixelRatio: 4,
 			pageCount: true,
@@ -133,17 +137,17 @@ describe("Simple setup", function () {
 	});
 
 	it("gets pdf without gs on firefox", async () => {
-		const res = await fetch(`${host}/index.html?browser=firefox`);
+		const res = await fetch(`${host}/index.html?browser=firefox&pdf=ff`);
 		assert.equal(res.status, 200);
 		assert.equal(
 			res.headers.get('content-disposition'),
 			'attachment; filename="Test écrit1.pdf"'
 		);
-		assert.ok(!res.headers.has('x-page-count'));
+		assert.equal(res.headers.get('x-page-count'), '2');
 		const buf = await res.arrayBuffer();
 		const len = buf.byteLength;
-		assert.ok(len >= 100000);
 		await assertBox(buf, 210, 297);
+		assert.ok(len >= 100000);
 	});
 
 	it("gets pdf without gs manually", async () => {
@@ -202,7 +206,8 @@ describe("Simple setup", function () {
 		assert.equal(res.status, 200);
 		assert.equal(
 			res.headers.get('x-page-count'),
-			'1'
+			'2',
+			'page count should be two'
 		);
 		const buf = await res.arrayBuffer();
 		assert.ok(buf.byteLength <= 65000);
@@ -220,7 +225,8 @@ describe("Simple setup", function () {
 		);
 		assert.equal(
 			res.headers.get('x-page-count'),
-			'1'
+			'2',
+			'page count should be two'
 		);
 		const buf = await res.arrayBuffer();
 		await assertBox(buf, 210, 297);
@@ -239,8 +245,8 @@ describe("Simple setup", function () {
 		await assertBox(buf, 210, 297);
 		assert.equal(
 			res.headers.get('x-page-count'),
-			'1',
-			'page count should be one'
+			'2',
+			'page count should be two'
 		);
 		assert.ok(buf.byteLength >= 60000);
 		assert.ok(buf.byteLength < 70000);
@@ -258,8 +264,8 @@ describe("Simple setup", function () {
 		await assertBox(buf, 210, 297);
 		assert.equal(
 			res.headers.get('x-page-count'),
-			'1',
-			'page count should be one'
+			'2',
+			'page count should be two'
 		);
 		assert.ok(buf.byteLength >= 50000);
 		assert.ok(buf.byteLength < 60000);

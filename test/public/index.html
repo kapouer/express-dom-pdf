@@ -5,10 +5,21 @@
 <script>
 document.head.querySelector('title').textContent += window.devicePixelRatio;
 window.onload = function() {
-	document.querySelector('div').innerHTML = "test";
+	document.querySelector('#text').innerHTML = "test";
 };
 </script>
 <style>
+@page {
+	size: a4 portrait;
+	margin: 0;
+}
+html, body {
+	margin:0;
+}
+.page {
+	width:21cm;
+	height:29.7cm;
+}
 .gray-border {
 	border: 15px solid #333333;
 }
@@ -20,11 +31,15 @@ window.onload = function() {
 </style>
 </head>
 <body>
-A rather empty html page
-<div></div>
+<div class="page">
+	A rather empty html page
 <img src="observable-universe.png" />
 <span class="gray-text">some #333 text</span>
+</div>
+<div class="page">
+	<p id="text"></p>
 <img src="colors.jpg" class="gray-border" />
 <div style="background-image: url(observable-universe.jpg);width: 50px;height: 50px;background-position: center;"></div>
+</div>
 </body>
 </html>
