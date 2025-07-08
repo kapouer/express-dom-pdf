@@ -59,19 +59,30 @@ const domConfig = pdf({
 			quality: 'screen',
 			devicePixelRatio: 1,
 			format: 'a4',
-			others: [
-				"-dColorImageResolution=32"
-			]
+			distiller: {
+				...pdf.presets.default.distiller,
+				ColorImageResolution: 32
+			}
 		},
 		ff: {
 			pageCount: true,
-			devicePixelRatio: 1
+			devicePixelRatio: 1,
+			distiller: {
+				...pdf.presets.default.distiller,
+				compatibilityLevel: "1.3"
+			}
 		},
 		prepress: {
 			devicePixelRatio: 4,
 			pageCount: true,
 			quality: 'prepress',
-			format: 'a4'
+			format: 'a4',
+			distiller: {
+				...pdf.presets.default.distiller,
+				SubsetFonts: false,
+				MaxShadingBitmapSize: 4096000,
+				PassThroughJPEGImages: true
+			}
 		},
 		x3: {
 			quality: 'prepress',
@@ -80,14 +91,16 @@ const domConfig = pdf({
 			pdfx: true,
 			icc: 'colord/FOGRA39L_coated.icc',
 			condition: 'FOGRA39L',
-			format: 'a4'
+			format: 'a4',
+			distiller: pdf.presets.printer.distiller,
 		},
 		a2: {
 			quality: 'prepress',
 			devicePixelRatio: 4,
 			pageCount: true,
 			pdfa: true,
-			format: 'a4'
+			format: 'a4',
+			distiller: pdf.presets.prepress.distiller
 		}
 	}
 });

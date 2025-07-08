@@ -1,5 +1,10 @@
 # CHANGES
 
+## 10.1.0
+
+pdf distiller settings are now passed through a preset's `distiller` object,
+allowing greater flexibility for configuring pdfwrite gs device.
+
 ## 10.0.0
 
 Switch to express-dom 9, using puppeteer.
