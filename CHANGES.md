@@ -1,5 +1,11 @@
 # CHANGES
 
+## 10.1.1
+
+Fix suffix of temporary pdf files.
+
+Ensure pdf timeout is observed from settings.
+
 ## 10.1.0
 
 pdf distiller settings are now passed through a preset's `distiller` object,
