@@ -223,8 +223,8 @@ describe("Simple setup", function () {
 			'page count should be two'
 		);
 		const buf = await res.arrayBuffer();
-		assert.ok(buf.byteLength <= 65000);
-		assert.ok(buf.byteLength >= 55000);
+		assert.ok(buf.byteLength <= 60000);
+		assert.ok(buf.byteLength >= 50000);
 		await assertBox(buf, 210, 297);
 	});
 
@@ -261,8 +261,8 @@ describe("Simple setup", function () {
 			'2',
 			'page count should be two'
 		);
-		assert.ok(buf.byteLength >= 60000);
-		assert.ok(buf.byteLength < 70000);
+		assert.ok(buf.byteLength >= 54000);
+		assert.ok(buf.byteLength < 60000);
 	});
 
 	it("get a pdf/a2 with firefox", async () => {
