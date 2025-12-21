@@ -29,16 +29,16 @@
     "url": "https://github.com/kapouer/express-dom-pdf/issues"
   },
   "dependencies": {
-    "debug": "^4.4.1",
-    "tmp": "^0.2.3"
+    "debug": "^4.4.3",
+    "tmp": "^0.2.5"
   },
   "peerDependencies": {
-    "express-dom": "^9.0.9"
+    "express-dom": "^9.0.12"
   },
   "devDependencies": {
-    "@kapouer/eslint-config": "^2.1.1",
-    "express": "5.1.0",
-    "express-dom": "^9.0.9",
+    "@kapouer/eslint-config": "^2.2.2",
+    "express": "5.2.1",
+    "express-dom": "^9.0.12",
     "mocha": "^11.7.1"
   },
   "eslintConfig": {
